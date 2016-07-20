@@ -1,0 +1,24 @@
+<html>
+    <head>
+    <script>
+        var insertApi = function () {
+            var xhr = new XMLHttpRequest();
+            var url = "https://cjohnson.ignorelist.com:4343/apitest";
+    
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    document.getElementById('successhole').innerHTML = xhr.responseText;
+                }
+            };
+    
+            xhr.open('GET', url, true);
+            xhr.send();
+        }
+    </script>
+    </head>
+    <body>
+        <div id="successhole">
+            <button onclick="insertApi()">Test the Googles</button>
+        </div>
+    </body>
+</html>

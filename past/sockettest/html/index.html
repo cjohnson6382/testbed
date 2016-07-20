@@ -1,0 +1,62 @@
+<html>
+    
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+
+        <script>
+            var socket = io();
+
+            var send = function () {
+                socket.emit('cmessage', {id: socket.id});
+                socket.emit('mmessage', {message: $('#message').val(), id: socket.id});
+            };
+
+            socket.on('returnmessage', function (message) {
+                console.log('cmessage fired');
+                $('#canvas').append('<br />' +  message.message);
+                console.log(message.message);
+            });
+
+            socket.on('message', function (message) {
+                console.log('message fired');
+                $('#canvas').append('Date: <span>' + message.date + '</span>');
+            });
+
+            socket.on('derp', function (data) {
+                console.log('derp fired');
+                $('#canvas2').append('<br />Derps: ' + data.derp);
+            }); 
+
+            var getsavedsocket = function () {
+                $.ajax({
+                    method: 'GET',
+                    url: "https://cjohnson.ignorelist.com:4343/send",
+                    data: { id: socket.id, message: 'derpy derpy lerp'},
+                    
+                })
+                    .done(function (resp) {
+                        console.log('server response to XHR: ' + resp);
+                    });
+                //  socket.emit('savedsocket', {});
+            };
+
+            socket.on('winner', function (data) {
+                $('#canvas3').append(data.worked + '<br />');
+            });
+
+        </script>    
+    </head>
+    
+    <body>
+        <button onclick="send()">Send Message to Server</button>
+        <form>Message: <input type="text" id="message"></form>
+        <br />
+        <button onclick="getsavedsocket()">Server Test</button>
+        <br />
+        <div id="canvas"></div>
+        <div id="canvas2"></div>
+        <div id="canvas3"></div>
+    </body>
+    
+</html>
