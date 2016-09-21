@@ -69,6 +69,6 @@ const CommentList = React.createClass({
 });
 
 ReactDOM.render(
-    <CommentBox source="http://cjohnson.ignorelist.com/api/list" />,
+    <CommentBox source="http://cjohnson.ignorelist.com/api/comments" />,
     document.getElementById('content')
 );
