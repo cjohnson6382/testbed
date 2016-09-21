@@ -55,7 +55,7 @@ const CommentList = React.createClass({
     getModalContent: function () {
         $.get('http://cjohnson.ignorelist.com/public/modal.html', function (modalbody) {
             this.setState({ modalbody: modalbody });
-        });
+        }.bind(this));
     },
 
     onClick: function (evt) {
@@ -74,7 +74,8 @@ const CommentList = React.createClass({
         
         const comments = this.props.data.map(function (comment) {
             return (
-                <div onClick={this.openModal} value={comment.text} >
+                //  this might not work //
+                <div onClick={openModal} value={comment.text} >
                     <span>comment.author</span>
                     <span>comment.id</span>
                     <span>comment.text</span>
