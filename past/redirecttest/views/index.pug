@@ -1,0 +1,26 @@
+doctype html
+html(lang="en")
+	head
+		script(type="text/javascript").
+			var go = function () {
+				var xhr = new XMLHttpRequest();
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState === 4 && xhr.status === 200) {
+						document.getElementById('authenticate').innerHtml = xhr.responseText;
+					}
+				};
+			};
+
+			xhr.open('GET', 'https://cjohnson.ignorelist.com/auth', true);
+			xhr.send();
+
+	body
+		h1 Redirect Test
+		#container
+			p.
+				Press the button to make a request and get some headers?
+			#getheaders
+				a(href=headerspage) Go to the Headers Page
+
+		#authenticate
+			button(onclick=go()) Authenticate
