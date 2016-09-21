@@ -45,11 +45,12 @@ const CommentList = React.createClass({
     },
 
     openModal: function () {
+        console.log('in openModal');
         this.setState({ showModal: true });
     },
     
     closeModal: function () {
-        this.setState({  showModal: false });    
+        this.setState({ showModal: false });    
     },
 
     getModalContent: function () {
@@ -73,9 +74,10 @@ const CommentList = React.createClass({
         
         
         const comments = this.props.data.map(function (comment) {
+            console.log('generating "comments" before rendering', comment);
+            
             return (
-                //  this might not work //
-                <div onClick={openModal} value={comment.text} >
+                <div onClick={ this.openModal } value={ comment.text } >
                     <span>comment.author</span>
                     <span>comment.id</span>
                     <span>comment.text</span>
