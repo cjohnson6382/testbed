@@ -54,15 +54,18 @@ const CommentList = React.createClass({
                 </div>
             );
         });
-    
+
+/*                  
+                <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
+                    { this.state.modalbody }
+                </Modal>
+*/
+        
         return (
             <div className="container">
                 <div className="commentList">
                     { comments } 
                 </div>
-                <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
-                    { this.state.modalbody }
-                </Modal>
             </div>
         );
     }
