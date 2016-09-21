@@ -1,5 +1,15 @@
+/*
 import Button from 'react-bootstrap/lib/Button';
 import Modal from 'react-bootstrap/lib/Modal';
+*/
+
+/*
+const Button = require('react-bootstrap/lib/Button');
+const Modal = require('react-bootstrap/lib/Modal');
+*/
+
+const Button = ReactBootstrap.Button;
+const Modal = ReactBootstrap.Modal;
 
 
 const CommentBox = React.createClass({
