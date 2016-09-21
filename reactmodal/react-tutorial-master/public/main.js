@@ -16,6 +16,9 @@ const CommentBox = React.createClass({
     loadCommentsFromServer: function () {
         $.get(this.props.url, function (comments) {
             this.setState({ data: comments });
+            
+            console.log('loadCommentsFromServer: ', comments);
+            
         }.bind(this));
     },
     
@@ -28,6 +31,8 @@ const CommentBox = React.createClass({
     },
     
     render: function () {
+        console.log('state in CommentBox: ', this.state);
+        
         return (
             <CommentList data={ this.state.data } />
         );
