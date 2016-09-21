@@ -22,7 +22,7 @@ const CommentBox = React.createClass({
 
 const CommentList = React.createClass({
     getInitialState: function () {
-        this.setState({ showModal: false, modalbody: '' });
+        return { showModal: false, modalbody: '' };
     },
 
     openModal: function () {
@@ -65,7 +65,6 @@ const CommentList = React.createClass({
                 <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
                     { this.state.modalbody }
                 </Modal>
-
             </div>
         );
     }
