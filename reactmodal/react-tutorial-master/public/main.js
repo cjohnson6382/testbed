@@ -22,7 +22,7 @@ const CommentBox = React.createClass({
 
 const CommentList = React.createClass({
     getInitialState: function () {
-        setState({ showModal: false, modalbody: '' });
+        this.setState({ showModal: false, modalbody: '' });
     },
 
     openModal: function () {
@@ -35,13 +35,13 @@ const CommentList = React.createClass({
 
     getModalContent: function () {
         $.get('http://cjohnson.ignorelist.com/public/modal.html', function (modalbody) {
-            setState({ modalbody: modalbody });
+            this.setState({ modalbody: modalbody });
         });
     },
 
     onClick: function (evt) {
         evt.preventDefault();
-        setState({ modalText: evt.target.value });
+        this.setState({ modalText: evt.target.value });
         getModalContent();
         openModal();
     },
@@ -56,18 +56,16 @@ const CommentList = React.createClass({
                 </div>
             );
         });
-
-/*                  
-                <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
-                    { this.state.modalbody }
-                </Modal>
-*/
         
         return (
             <div className="container">
                 <div className="commentList">
                     { comments } 
                 </div>
+                <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
+                    { this.state.modalbody }
+                </Modal>
+
             </div>
         );
     }
