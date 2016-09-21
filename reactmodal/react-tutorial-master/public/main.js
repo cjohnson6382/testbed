@@ -14,7 +14,9 @@ const CommentBox = React.createClass({
     },
     
     render: function () {
-        <CommentList data={ this.state.data } />
+        return (
+            <CommentList data={ this.state.data } />
+        );
     }
 });
 
