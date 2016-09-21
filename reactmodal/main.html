@@ -1,0 +1,163 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>React Tutorial</title>
+    <script src="https://unpkg.com/react@15.3.2/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-core@5.8.38/browser.min.js"></script>
+    <script src="https://unpkg.com/jquery@3.1.0/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/remarkable@1.6.2/dist/remarkable.min.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script type="text/babel">
+
+
+//  expects this.props.source = 'http://cjohnson.ignorelist.com/api/list'
+const TicketBox = React.createClass({
+    //  call this when the component is attached and then again in a callback from ticket create
+    loadTicketsFromServer: function () {
+        $.get(this.props.source, function (tickets) {
+            this.setState({ tickets: tickets });
+        }.bind(this));
+    },
+    
+    getInitialState: function () {
+        return { tickets: [] };
+    },
+    
+    componentDidMount: function () {
+        this.loadTicketsFromServer();
+    },
+    
+    render: function () {
+        return (
+            <TicketList data={ this.state.tickets } />
+            ////////////////////////////////////////////////////////////////
+            <OpenModal />
+        );
+    }
+});
+
+const TicketList = React.createClass({
+    render: function () {
+        const ticketNodes = this.props.data.map(function (ticket) {
+            return (
+                <li>
+                    <span onClick={ openSummary(ticket) } name={ ticket.name } >
+                        {ticket.name}
+                        <span onClick={ deleteTicket(ticket._id) }>{X]</span>
+                    </span>
+                </li>
+            );
+        });
+        
+        return (
+            <div className="ticketList">
+                {ticketNodes}
+            </div>
+        );
+    }
+});
+
+//  does this send a ticket template to the ticket-create-form? it should, this'll make it seemless to work between create and modify
+const NewTicket = React.createClass({
+    render: function () {
+        return ();
+    }
+});
+
+ReactDOM.render(
+    <TicketBox source="http://cjohnson.ignorelist.com/api/list" />,
+    document.getElementById('content')
+);
+
+
+    </script>
+  </body>
+</html>
+
+
+//  things to do on this page: 
+//      how do I get the this.props.rma-ticket that will populate this entire thing?
+//      it's gonna be passed along either from the 'create' button or from clicking on the list
+
+//  I'm not going to use flux for commucation; it's way too much work for way too little benefit
+//      instead: when the ticket-create form submits, it's gonna call a function on the parent page with the complete create/update object arg
+//          the main page is going to send the completed object up to the server and after it gets a response
+//          it'll get an updated ticket list using the filters in place at the time that the ticket was created/updated
+//              the server only has to create/update a single ticket, so it could also theoretically get the whole ticket back
+//              when it calls the server the first time, and then stick that in the array of tickets that's being displayed
+//                  and removing the 'last' one so that the total number of displayed tickets stays consistent
+
+
+
+//  when I learn how, I'm going to have to render the properties according to the instructions on the ticket creation template
+
+const TicketSummary = React.createClass({
+    createSummary: function () {
+        const boxes = Object.keys(this.props.sections).map(function (key) { 
+            return (
+                <SmallBox data={ this.props.sections[key] } name={ key } />
+            );
+        });
+    }
+
+    render: function () {
+        return (
+            <div>
+                { boxes }
+            </div>
+        );
+    }
+});
+
+//  expects a DATA prop that's key: field, value: field_properties!
+//      the data prop has to be SPECIFIC to this box, 
+//      because the box will render all of the properties that get passed to it
+const SmallBox = React.createClass({
+    //      each ticket has properties, each property is a name, a type, and a value    
+    createFields: function (this.props.data) {
+        //  you can't map an object; you have to get soe kind of field name
+        const form = Object.keys(this.props.data).map(function (name) {
+            let field = this.props.data[name];
+            return (
+                <div>
+                    <span>{ field.name + ": " }</span>
+                    <input type={ field.type } value={ field.value } name={ field.name } onChange={ this.handleFieldChange } />
+                </div>
+            );
+        });
+    },            
+
+    handleFieldChange: function (evt) {
+        const stateobject = {};
+        stateobject[evt.target.name] = evt.target.value;
+        this.setState(stateobject);
+    }
+
+    sendStateToParent: function (evt) {
+        //  don't focus on this until you have some flux figured out.....
+
+        //  let's go a step further: don't call this; when the parent hits submit, flux will send an event out
+        //       the components will be listening for this event and will respond by sending their states
+        //          flux will wait for the responses and then send a completed update/create object to the parent
+    
+        const prettyState = (Object.keys(this.state).map(function (field) {
+            //  field.type may not work//////////////////////////////////////////////
+            if (this.state[field].type === text) { 
+                return field.trim();
+            } else {
+                return field;
+            } 
+        });
+    },
+
+    render: function () {
+        <form className="form" >
+            {form}
+        </form>
+    }                
+});
