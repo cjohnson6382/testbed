@@ -1,3 +1,7 @@
+import Button from 'react-bootstrap/lib/Button';
+import Modal from 'react-bootstrap/lib/Modal';
+
+
 const CommentBox = React.createClass({
     loadCommentsFromServer: function () {
         $.get(this.props.url, function (comments) {
