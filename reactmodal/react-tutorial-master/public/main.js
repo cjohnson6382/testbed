@@ -14,7 +14,7 @@ const Modal = ReactBootstrap.Modal;
 
 const CommentBox = React.createClass({
     loadCommentsFromServer: function () {
-        $.get(this.props.url, function (comments) {
+        $.get(this.props.source, function (comments) {
             this.setState({ data: comments });
             
             console.log('loadCommentsFromServer: ', comments);
