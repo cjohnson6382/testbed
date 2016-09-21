@@ -61,6 +61,11 @@ const CommentList = React.createClass({
     },
     
     render: function () {
+        
+        
+        console.log(this.props);
+        
+        
         const comments = this.props.data.map(function (comment) {
             return (
                 <div onClick={this.openModal} value={comment.text} >
