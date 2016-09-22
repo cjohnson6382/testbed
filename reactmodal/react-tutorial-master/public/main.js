@@ -73,7 +73,7 @@ const CommentList = React.createClass({
         
         const comments = this.props.data.map(function (comment) {
             return (
-                <div onClick={ that.openModal } key={ comment.id } value={ comment.text } >
+                <div onClick={ that.onClick } key={ comment.id } value={ comment.text } >
                     <span>{ comment.author } </span>
                     <span>{ comment.id } </span>
                     <span>{ comment.text }</span>
