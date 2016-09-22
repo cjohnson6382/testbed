@@ -36,7 +36,7 @@ const CommentBox = React.createClass({
 
 const CommentList = React.createClass({
     getInitialState: function () {
-        return { showModal: false, modalbody: '' };
+        return { showModal: false, modalbody: '', comment: {} };
     },
 
     openModal: function () {
