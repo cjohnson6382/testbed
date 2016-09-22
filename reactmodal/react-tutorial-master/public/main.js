@@ -62,14 +62,14 @@ const CommentList = React.createClass({
     onClick: function (evt) {
         evt.preventDefault();
         this.setState({ modalText: evt.target.value });
-        getModalContent();
-        openModal();
+        this.getModalContent();
+        this.openModal();
     },
     
     render: function () {   
         let that = this;
         
-        console.log(this.state.modalbody);
+        console.log('in render, modalbody: ', this.state.modalbody);
         
         const comments = this.props.data.map(function (comment) {
             return (
