@@ -68,19 +68,18 @@ const CommentList = React.createClass({
     
     render: function () {
         
-        
+        let that = this;
         console.log('props: ', this.props);
         console.log('state: ', this.state);
         
         
         const comments = this.props.data.map(function (comment) {
             console.log('generating "comments" before rendering', comment);
-            console.log('apparently "this" is undefined? ', this);
-            console.log('openModal: ', openModal);
-            console.log('this.openModal: ', this.openModal);
+            console.log('apparently "that" is undefined? ', that);
+            console.log('this.openModal: ', that.openModal);
             
             return (
-                <div onClick={ this.openModal } value={ comment.text } >
+                <div onClick={ that.openModal } value={ comment.text } >
                     <span>comment.author</span>
                     <span>comment.id</span>
                     <span>comment.text</span>
