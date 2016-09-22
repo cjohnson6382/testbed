@@ -16,9 +16,6 @@ const CommentBox = React.createClass({
     loadCommentsFromServer: function () {
         $.get(this.props.source, function (comments) {
             this.setState({ data: comments });
-            
-            console.log('loadCommentsFromServer: ', comments);
-            
         }.bind(this));
     },
     
@@ -30,9 +27,7 @@ const CommentBox = React.createClass({
         this.loadCommentsFromServer();
     },
     
-    render: function () {
-        console.log('state in CommentBox: ', this.state);
-        
+    render: function () {        
         return (
             <CommentList data={ this.state.data } />
         );
@@ -45,7 +40,6 @@ const CommentList = React.createClass({
     },
 
     openModal: function () {
-        console.log('in openModal');
         this.setState({ showModal: true });
     },
     
@@ -69,26 +63,18 @@ const CommentList = React.createClass({
     render: function () {
         
         let that = this;
-        console.log('props: ', this.props);
-        console.log('state: ', this.state);
-        
-        
         const comments = this.props.data.map(function (comment) {
-            console.log('generating "comments" before rendering', comment);
-            console.log('apparently "that" is undefined? ', that);
-            console.log('this.openModal: ', that.openModal);
-            
             return (
-                <div onClick={ that.openModal } value={ comment.text } >
-                    <span>comment.author</span>
-                    <span>comment.id</span>
-                    <span>comment.text</span>
+                <div onClick={ that.openModal } key={ comment.id } value={ comment.text } >
+                    <span>{ comment.author }</span>
+                    <span>{ comment.id }</span>
+                    <span>{ comment.text }</span>
                 </div>
             );
         });
         
         return (
-            <div className="container">
+            <div className="container">}
                 <div className="commentList">
                     { comments } 
                 </div>
