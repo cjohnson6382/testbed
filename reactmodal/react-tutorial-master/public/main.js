@@ -47,6 +47,10 @@ const CommentList = React.createClass({
         this.setState({ showModal: false });    
     },
 
+    componentDidMount: function () {
+        this.getModalContent();
+    },
+    
     getModalContent: function () {
         console.log('in getModalContent');
         
@@ -60,7 +64,7 @@ const CommentList = React.createClass({
     },
 
     onClick: function (evt) {
-        getModalContent();
+        //  getModalContent();
         
         evt.preventDefault();
         this.setState({ modalText: evt.target.value });
