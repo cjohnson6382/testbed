@@ -75,7 +75,9 @@ const CommentList = React.createClass({
         
         const comments = this.props.data.map(function (comment) {
             console.log('generating "comments" before rendering', comment);
-            console.log('apparently "this" is undefined? ', this, openModal, this.openModal);
+            console.log('apparently "this" is undefined? ', this)
+            console.log('openModal: ', openModal
+            console.log('this.openModal: ', this.openModal);
             
             return (
                 <div onClick={ this.openModal } value={ comment.text } >
