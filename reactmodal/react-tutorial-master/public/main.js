@@ -63,7 +63,7 @@ const CommentList = React.createClass({
     render: function () {   
         let that = this;
         
-        console.log(modalbody);
+        console.log(this.state.modalbody);
         
         const comments = this.props.data.map(function (comment) {
             return (
