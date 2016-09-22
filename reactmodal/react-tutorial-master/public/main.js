@@ -48,7 +48,13 @@ const CommentList = React.createClass({
     },
 
     getModalContent: function () {
+        console.log('in getModalContent');
+        
+        
         $.get('http://cjohnson.ignorelist.com/modal.html', function (modalbody) {
+            
+            console.log('in getModalContent server has returned: ', modalbody);
+            
             this.setState({ modalbody: modalbody });
         }.bind(this));
     },
