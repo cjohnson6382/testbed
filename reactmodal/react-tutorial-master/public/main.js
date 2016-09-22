@@ -47,35 +47,29 @@ const CommentList = React.createClass({
         this.setState({ showModal: false });    
     },
 
+    /*
     componentDidMount: function () {
         this.getModalContent();
     },
     
     getModalContent: function () {
-        console.log('in getModalContent');
-        
-        
         $.get('http://cjohnson.ignorelist.com/modal.html', function (modalbody) {
-            
-            console.log('in getModalContent server has returned: ', modalbody);
-            
             this.setState({ modalbody: modalbody });
         }.bind(this));
     },
-
+    */
+    
     onClick: function (evt) {
         //  getModalContent();
         
         evt.preventDefault();
-        this.setState({ modalText: evt.target.value });
+        this.setState({ comment: { key: evt.target.key, value: evt.target.value } });
 
         openModal();
     },
     
     render: function () {   
         let that = this;
-        
-        console.log('in render, modalbody: ', this.state.modalbody);
         
         const comments = this.props.data.map(function (comment) {
             return (
@@ -92,8 +86,20 @@ const CommentList = React.createClass({
                 <div className="commentList">
                     { comments } 
                 </div>
-                <Modal show={ this.state.showModal } name={ this.state.modalText } onHide={ this.closeModal }>
-                    { this.state.modalbody }
+                <Modal show={ this.state.showModal } onHide={ this.closeModal }>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{ this.state.comment.key }</Modal.Title>
+                    </Modal.Header>
+                    
+                    <Modal.Body>
+                        <div>This is the text of the comment you clicked:</div>
+                        <br />
+                        { this.state.comment.value }
+                    </Modal.Body>
+                    
+                    <Modal.Footer>
+                        <Button onClick={this.props.onHide }>Close</Button>
+                    </Modal.Footer>
                 </Modal>
             </div>
         );
