@@ -62,8 +62,8 @@ const CommentList = React.createClass({
     onClick: function (evt) {
         evt.preventDefault();
         this.setState({ modalText: evt.target.value });
-        this.getModalContent();
-        this.openModal();
+        getModalContent();
+        openModal();
     },
     
     render: function () {   
