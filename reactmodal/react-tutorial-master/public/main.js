@@ -60,21 +60,23 @@ const CommentList = React.createClass({
         openModal();
     },
     
-    render: function () {
-        
+    render: function () {   
         let that = this;
+        
+        console.log(modalbody);
+        
         const comments = this.props.data.map(function (comment) {
             return (
                 <div onClick={ that.openModal } key={ comment.id } value={ comment.text } >
-                    <span>{ comment.author }</span>
-                    <span>{ comment.id }</span>
+                    <span>{ comment.author } </span>
+                    <span>{ comment.id } </span>
                     <span>{ comment.text }</span>
                 </div>
             );
         });
         
         return (
-            <div className="container">}
+            <div className="container">
                 <div className="commentList">
                     { comments } 
                 </div>
