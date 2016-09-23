@@ -60,12 +60,11 @@ const CommentList = React.createClass({
     */
     
     onClick: function (evt) {
-        //  getModalContent();
-        
-        evt.preventDefault();
-        this.setState({ comment: { key: evt.target.key, value: evt.target.value } });
+				evt.stopPropagation();
+				evt.preventDefault();
 
-        openModal();
+        this.setState({ comment: evt.currentTarget.attributes.value.value });
+        this.openModal();
     },
     
     render: function () {   
@@ -73,7 +72,7 @@ const CommentList = React.createClass({
         
         const comments = this.props.data.map(function (comment) {
             return (
-                <div onClick={ that.onClick } key={ comment.id } value={ comment.text } >
+                <div onClickCapture={ that.onClick } key={ comment.id } value={ comment.text } >
                     <span>{ comment.author } </span>
                     <span>{ comment.id } </span>
                     <span>{ comment.text }</span>
@@ -86,19 +85,21 @@ const CommentList = React.createClass({
                 <div className="commentList">
                     { comments } 
                 </div>
-                <Modal show={ this.state.showModal } onHide={ this.closeModal }>
+                <Modal show={ this.state.showModal } >
                     <Modal.Header closeButton>
-                        <Modal.Title>{ this.state.comment.key }</Modal.Title>
+                        <Modal.Title>{ this.state.comment }</Modal.Title>
                     </Modal.Header>
                     
                     <Modal.Body>
                         <div>This is the text of the comment you clicked:</div>
                         <br />
-                        { this.state.comment.value }
+												{ this.state.comment }
+												<br />
+                        { this.state.comment }
                     </Modal.Body>
                     
                     <Modal.Footer>
-                        <Button onClick={this.props.onHide }>Close</Button>
+                        <Button onClick={ this.closeModal }>Close</Button>
                     </Modal.Footer>
                 </Modal>
             </div>
