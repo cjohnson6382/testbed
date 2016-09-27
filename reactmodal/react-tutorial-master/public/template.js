@@ -23,10 +23,9 @@ I want to programmatically generate the template form so that if I add or remove
 
 
 
-/*
   const AutocompleteField = React.createClass({
     getInitialState: () => {
-      return { results: [] };
+      return { results: [], input: '' };
     },
     componentDidMount: () => {
       fetch(this.props.resource)
@@ -41,10 +40,21 @@ I want to programmatically generate the template form so that if I add or remove
           this.setState({ autocompletes: respArray });
         });
     },
+    submit: (evt) => {
+      this.setState( input: evt.target.value, results: [] );
+    },
     render: () => {
+      const fields = () => {
+        const autocompleteFields = this.state.autocompletes.map((option) => {
+          return (
+            <div onClick={ this.submit } >{ option }</div>
+          );
+        });
+
       return (
         <div>
-          <input type="text" placeholder={ this.props.options.name } onChange={ this.handleChange } />
+          <span>{ this.props.options.name }: </span>
+          <input type="text" placeholder={ this.props.options.name } onChange={ this.handleChange } value: { this.state.input } />
           <ul style:"list-style-type: none">
             { this.state.autocompletes }
           </ul>
@@ -53,24 +63,66 @@ I want to programmatically generate the template form so that if I add or remove
     }
   });
 
+  const DropdownField = React.createClass({
+    getInitialState: () => {
+      return { input: '' }
+    },
+    select: (evt) => {
+      this.setState({ input: evt.target.value });
+    },
+    render: () => {
+      const menuitems = this.props.options.rules.data.map(function (item) {
+        return (
+          <MenuItem eventKey={ item } onSelect={ } >{ item }</MenuItem>
+        );
+      });
+    
+      return (
+        <div>
+          <span>{ this.props.options.name }: </span>
+          <span>
+            <DropdownButton name={ this.props.options.name } >
+              { menuitems }
+            </DropdownButton>
+          </span>
+          <span><input type={ this.props.options.rules.type } placeholder={ this.props.options.name } value={ this.state.input } /></span>
+        </div>
+      );
+    }
+  });
+
+  const InputField = React.createClass({
+    render: () => {
+      return (
+        <div>
+          <span>{ this.props.field.name }: </span>
+          <input type={ this.props.field.options.type } />
+        </div>
+      );
+    }
+  });
+
   const CreateTemplate = React.createClass({
     getInitialState:() => {
       return {
-        ticket-template: '',
-        html: ''
+        ticketTemplate: '',
+        html: '',
       }
     },
     componentDidMount:() => {
-      this.loadTemplateFromServer();
+      this.loadTemplateFromServer()
+        .then(generateTemplateHTML);
     },
-    generateTemplateHTML: (content-box) => {
-      this.state.ticketTemplate.map(function (item) {
+    generateTemplateHTML: (templatecode) => {
+      const html = templatecode.reduce((previous, item) => {
         if (item.type === 'field') {
-          this.handleField(item);
+          return previous + this.handleField(item);
         } else if (item.type === 'fieldlist') {
-          this.handleFieldlist(item);
+          return previous + this.handleFieldlist(item);
         }
       });
+
+      this.setState({ html: html });
     },
     loadTemplateFromServer: () => {
       fetch(this.props.source)
@@ -78,53 +130,18 @@ I want to programmatically generate the template form so that if I add or remove
           this.setState({ ticketTemplate: template });
         }.bind(this));
     },
+    templateCodeToHtml: (field) => {
+      const rulesKey = {
+        autocomplete: ( <AutocompleteField name={ this.props.options.name } source={ 'http://cjohnson.ignorelist.com' + this.props.options.rules.data } /> )
+        dropdown: ( <DropdownField options={ this.props.options } ></DropdownField> )
+      };
+
+      return field.options.type === 'complextext' ? rulesKey[field.options.rules.type] : ( <InputField field={ field } />)
+    },
     handleField: (field) => {
-      const deferredField = new Promise () {
-        resolve(templateCodeToHtml(field));
-      };
-      ////////////////////////////////  fill out these functions //////////////////////////
-      const templateCodeToHtml = function () {
-        const fieldType = {
-          text: function () {},
-          checkbox: function () {},
-          complex: function () {},
-        };
-        const rulesKey = {
-          autocomplete: function (options) {
-            const dbSource = 'http://cjohnson.ignorelist.com' + options.data;
-            return (
-              <AutocompleteField source={ dbSource } />
-            );
-          },
-          text: function () {
-            //  I may not need this property, since anything that's 'complex' is also 'text' at the end of the day...
-          },
-          dropdown: function (options) {
-            const menuitems = options.data.map(function (item, index) {
-              return (
-                <MenuItem eventKey={ index } >{ item }</MenuItem>
-              );
-            });
-
-            return (
-              <div>
-                <DropdownButton name={ options.name } >
-                  { menuitems }
-                </DropdownButton>
-              </div>
-            );
-          }
-        };
-      };
-///////
-
-
-      deferred-field
-        .then(function (html) {
-          return (
-            { html }
-          );
-        });
+      const deferredField = new Promise (function (resolve, reject) { resolve(this.templateCodeToHtml(field)) };
+      deferredField
+        .then((html) => { return html });
     },
     handleFieldlist: function (fieldlist) {
       const deferredArray = fieldlist.map(function (field) {
@@ -139,17 +156,18 @@ I want to programmatically generate the template form so that if I add or remove
 
       Promise.all(deferredArray)
         .then(function (renderedFieldsArray) {
-            /* assemble the fieldlist container, then put the returned rendered-fields-array into it */
-            return (
-              <div name={ fieldlist.name } >{ renderedFieldsArray.join('') }</div>
-            );
+
+
+
+
+            //  do I need to return something else for a tabs fieldlist?
+            return ( <div name={ fieldlist.name } >{ renderedFieldsArray.join('') }</div> );
         });
     },
     render: function () {
-      return ( { html } );
+      return ( { this.state.html } );
     }
   });
-*/
 
 
 ticket-template-data = [
@@ -162,7 +180,7 @@ ticket-template-data = [
       value: [
         {   //  populate autogen fields on the server and return them to the client?
           type: 'field',
-          options: { name: id, type: rules: { type: 'complexdate', format: 'autogentext', generator: /* createid */ } },
+          options: { name: id, rules: { type: 'complexdate', format: 'autogentext', generator: /* createid */ } },
           value: ''
         },
         {
@@ -328,7 +346,6 @@ ticket-template-data = [
     ]
   }
 ];
-
 
 
 <section name="rma-properties">
