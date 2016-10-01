@@ -1,113 +1,86 @@
-/*
-import Button from 'react-bootstrap/lib/Button';
-import Modal from 'react-bootstrap/lib/Modal';
-*/
-
-/*
-const Button = require('react-bootstrap/lib/Button');
-const Modal = require('react-bootstrap/lib/Modal');
-*/
-
 const Button = ReactBootstrap.Button;
 const Modal = ReactBootstrap.Modal;
 
+const CreateTemplate = window.CreateTemplate;
 
-const CommentBox = React.createClass({
-    loadCommentsFromServer: function () {
-        $.get(this.props.source, function (comments) {
-            this.setState({ data: comments });
-        }.bind(this));
-    },
-    
-    getInitialState: function () {
-        return { data: [] };
-    },
-    
-    componentDidMount: function () {
-        this.loadCommentsFromServer();
-    },
-    
-    render: function () {        
-        return (
-            <CommentList data={ this.state.data } />
-        );
-    }
+const TicketBox = React.createClass({
+  getInitialState: function () {
+      return { data: [], ticket: '' };
+  },
+	selectTicket: function (evt) {
+		//	evt.stopPropogation();
+		evt.preventDefault();
+    this.setState({ ticket: evt.currentTarget.attributes.value.value });
+		this.openModal();
+	},
+	openModal: function () {
+		this.setState({ showModal: true });
+	},
+	closeModal: function () {
+		this.setState({ showModal: false });
+	},
+  render: function () { 
+    return (
+			<div>
+        <TicketList source={ this.props.source } onclick={ this.selectTicket } />
+				<Button bsStyle="primary" onClick={ this.selectTicket } value="new">New Ticket</Button> 
+        <Modal show={ this.state.showModal } >
+          <Modal.Header closeButton>
+            <Modal.Title>{ this.state.ticket }</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+						<CreateTemplate source={ this.state.ticket } />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={ this.closeModal }>Close</Button>
+          </Modal.Footer>
+        </Modal>
+			</div>
+  	);
+  }
 });
 
-const CommentList = React.createClass({
-    getInitialState: function () {
-        return { showModal: false, modalbody: '', comment: {} };
-    },
+const TicketList = React.createClass({
+  getInitialState: function () {
+      return { showModal: false, tickets: this.props.data, ticket: {}, modalSource: '' };
+  },
 
-    openModal: function () {
-        this.setState({ showModal: true });
-    },
-    
-    closeModal: function () {
-        this.setState({ showModal: false });    
-    },
+  componentDidMount: function () {
+      this.getTickets();
+  },
 
-    /*
-    componentDidMount: function () {
-        this.getModalContent();
-    },
-    
-    getModalContent: function () {
-        $.get('http://cjohnson.ignorelist.com/modal.html', function (modalbody) {
-            this.setState({ modalbody: modalbody });
-        }.bind(this));
-    },
-    */
-    
-    onClick: function (evt) {
-				evt.stopPropagation();
-				evt.preventDefault();
-
-        this.setState({ comment: evt.currentTarget.attributes.value.value });
-        this.openModal();
-    },
-    
-    render: function () {   
-        let that = this;
-        
-        const comments = this.props.data.map(function (comment) {
-            return (
-                <div onClickCapture={ that.onClick } key={ comment.id } value={ comment.text } >
-                    <span>{ comment.author } </span>
-                    <span>{ comment.id } </span>
-                    <span>{ comment.text }</span>
-                </div>
-            );
-        });
-        
-        return (
-            <div className="container">
-                <div className="commentList">
-                    { comments } 
-                </div>
-                <Modal show={ this.state.showModal } >
-                    <Modal.Header closeButton>
-                        <Modal.Title>{ this.state.comment }</Modal.Title>
-                    </Modal.Header>
-                    
-                    <Modal.Body>
-                        <div>This is the text of the comment you clicked:</div>
-                        <br />
-												{ this.state.comment }
-												<br />
-                        { this.state.comment }
-                    </Modal.Body>
-                    
-                    <Modal.Footer>
-                        <Button onClick={ this.closeModal }>Close</Button>
-                    </Modal.Footer>
-                </Modal>
+  getTickets: function () {
+    fetch(this.props.source) 
+			.then((tickets) => {
+				return tickets.text();
+			})
+			.then((text) => {
+        const ticketJst = JSON.parse(text).map((ticket) => {
+          return (
+            <div onClickCapture={ this.props.onclick } key={ ticket.id } value={ ticket.id } >
+              <span>{ ticket.vendor } </span>
+              <span>{ ticket.date } </span>
+              <span>{ ticket.id }</span>
             </div>
-        );
-    }
+          );
+        });
+
+        this.setState({ tickets: ticketJst });
+			});
+  },
+    
+  render: function () {   
+    return (
+      <div className="container">
+        <div className="ticketList">
+          { this.state.tickets } 
+        </div>
+      </div>
+    );
+  }
 });
 
 ReactDOM.render(
-    <CommentBox source="http://cjohnson.ignorelist.com/api/comments" />,
+    <TicketBox source="http://cjohnson.ignorelist.com/tickets.json" />,
     document.getElementById('content')
 );

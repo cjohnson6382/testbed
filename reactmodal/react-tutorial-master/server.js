@@ -20,6 +20,29 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.locals.ticketid = 1;
+
+app.get('/api/get/:ticketid', (req, res) => {
+	console.log('in the ticketid route', req.params.ticketid);
+	fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
+	  const file = data.toString('utf8');
+		const tick = JSON.parse(file).filter((ticket) => {
+			return String(ticket.id) === req.params.ticketid;
+		});
+		res.json(tick);
+	});
+});
+
+app.get('/api/tickets', (req, res) => {
+  fs.readFile(path.join(__dirname, 'public/template.json'), (err, data) => {
+    const template = JSON.parse(data.toString('utf8'));
+		template.value[0].value.value[0].value = () => { return app.locals.ticketid++ };
+    template.value[0].value.value[1].value = Date.now();
+
+    res.json(template);
+  });
+});
+
 app.get('/api/comments', function(req, res) {
   fs.readFile(COMMENTS_FILE, function(err, data) {
     if (err) {
