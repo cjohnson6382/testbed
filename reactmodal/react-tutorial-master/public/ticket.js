@@ -1,37 +1,62 @@
+const DropdownButton = ReactBootstrap.DropdownButton;
+const MenuItem = ReactBootstrap.MenuItem;
+
+const SERVER = "http://cjohnson.ignorelist.com/";
+
 const AutocompleteField = React.createClass({
   getInitialState: function () {
-    return { results: [], input: '', autocompletes: [] };
+    return {
+      results: [],
+      value: this.props.value,
+      autocompletes: []
+    };
   },
   componentDidMount: function () {
-    fetch('http://cjohnson.ignorelist.com/' + this.props.field.options.rules.data + '.json')
-      .then((resp) => { this.setState({ results: resp, input: this.props.field.value }) });
+    fetch(SERVER + this.props.data + '.json')
+      .then((resp) => { return resp.text() })
+      .then((text) => {
+        this.setState({
+          results: JSON.parse(text),
+          value: this.props.value
+        });
+      });
   },
+	updateValue: function () {
+		this.props.setvalue(this.props.name, this.state.value);
+	},
   handleChange: function (evt) {
-    this.setState({ input: evt.target.value });
+    this.setState({
+      value: evt.target.value
+    });
+    
     const formData = new FormData;
-    formData.set('search', this.state.input)
-    fetch('http://cjohnson.ignorelist.com/' + this.props.field.options.rules.data + '.json', { method: 'POST', body: formData })
-      .then(function (respArray) {
+    //  server doesn't do anything about this search value yet; need to filter the db results with it
+    formData.set('search', this.state.value);
+    
+    fetch(SERVER + this.props.field.options.rules.data + '.json', { method: 'POST', body: formData })
+      .then(resp.text())
+      .then((respArray) => {
 		    const autocompletes = respArray.map((option) => {
-		      return ( 
-						<li onClick={ this.submit } value={ option } >
-							{ option }
-						</li> 
-					);
+		      return ( <li onClick={ this.submit } value={ option } >{ option }</li> );
 		    });
         this.setState({ autocompletes: autocompletes });
       });
   },
+  handle: function (evt) {
+    if (evt.keyCode === 13) this.submit(evt)
+  },
   submit: function (evt) {
-    this.setState({ input: evt.target.value, results: [] });
+    evt.preventDefault();
+    this.setState({ value: evt.target.value, results: [] });
+		this.updateValue();
   },
   render: function () {
     return (
       <div>
-        <span>{ this.props.field.options.name }: </span>
-        <input type="text" placeholder={ this.props.field.options.name } onChange={ this.handleChange } value={ this.state.input } />
-        <ul style="list-style-type: none">
-          { autocompletes }
+        <span>{ this.props.name }: </span>
+        <input type="text" placeholder={ this.props.name } onChange={ this.handleChange } value={ this.state.value } onKeyPress={ this.handle } />
+        <ul style={{ listStyleType: "none" }} >
+          { this.state.autocompletes }
         </ul>
       </div>
     );
@@ -40,24 +65,28 @@ const AutocompleteField = React.createClass({
 
 const DropdownField = React.createClass({
   getInitialState: () => {
-    return { input: '' }
+    return { value: '' }
   },
   componentDidLoad: function () {
-    this.setState({ input: this.props.value });
+    this.setState({ value: this.props.value });
   },
+	updateValue: function () {
+		this.props.setvalue(this.props.name, this.state.value);
+	},
   select: function (evt) {
-    this.setState({ input: evt.target.value });
+    this.setState({ value: evt.target.value });
+		this.updateValue();
   },
   render: function () {
-    const menuitems = this.props.options.rules.data.map(function (item) {
-      return ( <MenuItem eventKey={ item } onSelect={ this.select } >{ item }</MenuItem> );
+    const menuitems = this.props.data.map((item, index) => {
+      return ( <MenuItem eventKey={ item } key={ index } id={ item } onSelect={ this.select } >{ item }</MenuItem> );
     });
   
     return (
       <div>
-        <span>{ this.props.options.name }: </span>
-        <span><DropdownButton name={ this.props.options.name } >{ menuitems }</DropdownButton></span>
-        <span><input type={ this.props.options.rules.type } placeholder={ this.props.options.name } value={ this.state.input } /></span>
+        <span>{ this.props.name }: </span>
+        <span><DropdownButton title={ this.props.name } >{ menuitems }</DropdownButton></span>
+        <span><input type={ this.props.type } placeholder={ this.props.name } value={ this.state.value } /></span>
       </div>
     );
   }
@@ -68,94 +97,21 @@ const InputField = React.createClass({
     return { value: '' };
   },
   componentDidMount: function () {
-    this.setState({ value: this.props.field.value });
+    this.setState({ value: this.props.value });
   },
+	updateValue: function () {
+		this.props.setvalue(this.props.name, this.state.value);
+	},
   render: function () {
     return (
       <div>
-        <span>{ this.props.field.name }: </span>
-        <input type={ this.props.field.options.rules.type } value={ this.state.value } />
+        <span>{ this.props.name }: </span>
+        <input type={ this.props.type } value={ this.state.value } placeholder={ this.props.name } onChange={ this.updateValue } />
       </div>
     );
   }
 });
 
-
-const TabsFieldlist = React.createClass({
-  render: function () {
-    const fields = this.props.fields.map((field, index) => {
-      return ( <Tab eventKey={ index } title={ this.props.fields[index].options.name }>{ field }</Tab> );
-    });
-
-    return ( <Tabs defaultActiveKey={ 1 } id={ this.props.name } >{ fields }</Tabs>);
-  }
-});
-
-const Fieldlist = React.createClass({
-  render: function () {
-    const fields = this.props.fields.map((field, index) => {
-      return ( <div title={ this.props.fields[index].options.name }>{ field }</div> );
-    });
-    
-    return ( <div id={ this.props.name } >{ fields }</div> );
-  }
-});
-
-
-const CreateTemplate = React.createClass({
-  getInitialState: () => {
-    return {
-      ticketTemplate: '',
-      html: '',
-    };
-  },
-  componentDidMount: function () {
-    this.loadTemplateFromServer()
-      .then(dispatcher(this.state.ticketTemplate))
-			// dispatcher doesn't return anything, so you can't do another then!
-      .then(
-				(jst) => { this.setState({ html: jst }) }
-			);
-  },
-  loadTemplateFromServer: function () {
-		console.log(this.props.source);
-    fetch(this.props.source)
-			.then((data) => { return data.text() })
-      .then((template) => { this.setState({ ticketTemplate: template }) });
-  },
-
-  dispatcher: function (templatejson) {
-    if (templatejson.type !== 'field' || templatejson.type !== 'fieldlist') throw new Error('templatejson is not a field or a fieldlist: ', templatejson)
-    return templatejson.type === 'field' ? this.renderField(templatejson) : this.renderFieldlist(templatejson);
-  },
-  renderField: function (field) {
-    if (!field.type !== 'field') throw new Error('renderField received a parameter that is not a field: ', field);
-    
-    const rulesKey = {
-      autocomplete: ( <AutocompleteField field={ field } /> ),
-      dropdown: ( <DropdownField field={ field } /> )
-    };
-
-    return field.options.rules.type === 'complextext' ? rulesKey[field.options.rules.type] : ( <InputField field={ field } /> );
-  },
-  renderFieldlist: function (fieldlist) {
-    if (!Array.isArray(fieldlist)) throw new Error('renderFieldlist got something that was not an array: ', fieldlist);
-    
-    const values = fieldlist.values.map((json) => {
-      this.dispatcher(json);
-    });
-    
-    Promise.all(values)
-      .then((jstArray) => {
-        return fieldlist.options.rules.type === 'tabs' ?
-          ( <TabsFieldlist fields={ jstArray } name={ fieldlist.options.name } />) :
-          ( <Fieldlist fields={ jstArray } name={ fieldlist.options.name } /> )
-      });
-
-  },
-  render: function () {
-    return ( <div>{ this.state.html }</div> );
-  }
-});
-
-window.CreateTemplate = CreateTemplate;
+window.AutocompleteField = AutocompleteField;
+window.DropdownField = DropdownField;
+window.InputField = InputField;

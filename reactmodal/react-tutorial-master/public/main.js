@@ -1,17 +1,26 @@
+const SERVER = "http://cjohnson.ignorelist.com/";
+
 const Button = ReactBootstrap.Button;
 const Modal = ReactBootstrap.Modal;
 
-const CreateTemplate = window.CreateTemplate;
+const Ticket = window.Ticket;
+//	const AutocompleteField = window.AutocompleteField;
+//	const DropdownField = window.DropdownField;
+//	const InputField = window.InputField;
 
 const TicketBox = React.createClass({
   getInitialState: function () {
-      return { data: [], ticket: '' };
+      return { data: [], ticketData: '', showModal: false };
   },
 	selectTicket: function (evt) {
-		//	evt.stopPropogation();
 		evt.preventDefault();
     this.setState({ ticket: evt.currentTarget.attributes.value.value });
-		this.openModal();
+		fetch(SERVER + "api/get/" + this.state.ticket)
+			.then((data) => { return data.text() })
+			.then((ticketdata) => {
+				this.setState({ ticketdata: JSON.parse(ticketdata) });
+				this.openModal();
+			});
 	},
 	openModal: function () {
 		this.setState({ showModal: true });
@@ -25,11 +34,11 @@ const TicketBox = React.createClass({
         <TicketList source={ this.props.source } onclick={ this.selectTicket } />
 				<Button bsStyle="primary" onClick={ this.selectTicket } value="new">New Ticket</Button> 
         <Modal show={ this.state.showModal } >
-          <Modal.Header closeButton>
-            <Modal.Title>{ this.state.ticket }</Modal.Title>
+          <Modal.Header>
+            <Modal.Title>{ this.state.ticketData.id }</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-						<CreateTemplate source={ this.state.ticket } />
+						<Ticket data={ this.state.ticketData } />
           </Modal.Body>
           <Modal.Footer>
             <Button onClick={ this.closeModal }>Close</Button>
@@ -42,7 +51,7 @@ const TicketBox = React.createClass({
 
 const TicketList = React.createClass({
   getInitialState: function () {
-      return { showModal: false, tickets: this.props.data, ticket: {}, modalSource: '' };
+      return { tickets: [] };
   },
 
   componentDidMount: function () {
@@ -51,9 +60,7 @@ const TicketList = React.createClass({
 
   getTickets: function () {
     fetch(this.props.source) 
-			.then((tickets) => {
-				return tickets.text();
-			})
+			.then((tickets) => { return tickets.text() })
 			.then((text) => {
         const ticketJst = JSON.parse(text).map((ticket) => {
           return (
@@ -71,11 +78,7 @@ const TicketList = React.createClass({
     
   render: function () {   
     return (
-      <div className="container">
-        <div className="ticketList">
-          { this.state.tickets } 
-        </div>
-      </div>
+      <div>{ this.state.tickets }</div>
     );
   }
 });
