@@ -1,12 +1,10 @@
 const SERVER = "http://cjohnson.ignorelist.com/";
 
+const Table = ReactBootstrap.Table;
 const Button = ReactBootstrap.Button;
 const Modal = ReactBootstrap.Modal;
 
 const Ticket = window.Ticket;
-//	const AutocompleteField = window.AutocompleteField;
-//	const DropdownField = window.DropdownField;
-//	const InputField = window.InputField;
 
 const TicketBox = React.createClass({
   getInitialState: function () {
@@ -59,26 +57,37 @@ const TicketList = React.createClass({
   },
 
   getTickets: function () {
-    fetch(this.props.source) 
-			.then((tickets) => { return tickets.text() })
-			.then((text) => {
+    fetch(this.props.source)
+      .then((tickets) => { return tickets.text() })
+      .then((text) => {
         const ticketJst = JSON.parse(text).map((ticket) => {
           return (
-            <div onClickCapture={ this.props.onclick } key={ ticket.id } value={ ticket.id } >
-              <span>{ ticket.vendor } </span>
-              <span>{ ticket.date } </span>
-              <span>{ ticket.id }</span>
-            </div>
+            <tr onClickCapture={ this.props.onclick } key={ ticket.id } value={ ticket.id } >
+              <td>{ ticket.id }</td>
+              <td>{ ticket.vendor }</td>
+              <td>{ ticket.date }</td>
+            </tr>
           );
         });
 
         this.setState({ tickets: ticketJst });
-			});
+      });
   },
-    
-  render: function () {   
+        
+  render: function () {
     return (
-      <div>{ this.state.tickets }</div>
+      <Table striped bordered condensed hover>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Vendor</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          { this.state.tickets }
+        </tbody>
+      </Table>
     );
   }
 });
