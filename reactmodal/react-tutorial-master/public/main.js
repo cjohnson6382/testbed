@@ -31,15 +31,15 @@ const TicketBox = React.createClass({
 			<div>
         <TicketList source={ this.props.source } onclick={ this.selectTicket } />
 				<Button bsStyle="primary" onClick={ this.selectTicket } value="new">New Ticket</Button> 
-        <Modal show={ this.state.showModal } >
+        <Modal bsSize="large" show={ this.state.showModal } >
           <Modal.Header>
-            <Modal.Title>{ this.state.ticketData.id }</Modal.Title>
+            <Modal.Title>Ticket Properties</Modal.Title>
           </Modal.Header>
           <Modal.Body>
 						<Ticket data={ this.state.ticketData } />
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={ this.closeModal }>Close</Button>
+            <Button onClick={ this.closeModal }>Cancel</Button>
           </Modal.Footer>
         </Modal>
 			</div>
