@@ -1,5 +1,6 @@
 const SERVER = "http://cjohnson.ignorelist.com/";
 
+const Panel = ReactBootstrap.Panel;
 const Table = ReactBootstrap.Table;
 const Button = ReactBootstrap.Button;
 const Modal = ReactBootstrap.Modal;
@@ -12,11 +13,12 @@ const TicketBox = React.createClass({
   },
 	selectTicket: function (evt) {
 		evt.preventDefault();
-    this.setState({ ticket: evt.currentTarget.attributes.value.value });
-		fetch(SERVER + "api/get/" + this.state.ticket)
+		let ticketid = evt.currentTarget.attributes.value.value;
+    this.setState({ ticket: ticketid });
+		fetch(SERVER + "api/get/" + ticketid)
 			.then((data) => { return data.text() })
 			.then((ticketdata) => {
-				this.setState({ ticketdata: JSON.parse(ticketdata) });
+				this.setState({ ticketdata: JSON.parse(ticketdata)[0] });
 				this.openModal();
 			});
 	},
@@ -28,7 +30,7 @@ const TicketBox = React.createClass({
 	},
   render: function () { 
     return (
-			<div>
+			<Panel height="65%" width="80%">
         <TicketList source={ this.props.source } onclick={ this.selectTicket } />
 				<Button bsStyle="primary" onClick={ this.selectTicket } value="new">New Ticket</Button> 
         <Modal bsSize="large" show={ this.state.showModal } >
@@ -36,13 +38,13 @@ const TicketBox = React.createClass({
             <Modal.Title>Ticket Properties</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-						<Ticket data={ this.state.ticketData } />
+						<Ticket data={ this.state.ticketdata } />
           </Modal.Body>
           <Modal.Footer>
             <Button onClick={ this.closeModal }>Cancel</Button>
           </Modal.Footer>
         </Modal>
-			</div>
+			</Panel>
   	);
   }
 });
@@ -53,10 +55,6 @@ const TicketList = React.createClass({
   },
 
   componentDidMount: function () {
-      this.getTickets();
-  },
-
-  getTickets: function () {
     fetch(this.props.source)
       .then((tickets) => { return tickets.text() })
       .then((text) => {
@@ -70,7 +68,7 @@ const TicketList = React.createClass({
           );
         });
 
-        this.setState({ tickets: ticketJst });
+        if (this.isMounted()) this.setState({ tickets: ticketJst });
       });
   },
         
@@ -79,9 +77,9 @@ const TicketList = React.createClass({
       <Table striped bordered condensed hover>
         <thead>
           <tr>
-            <th>Id</th>
-            <th>Vendor</th>
-            <th>Date</th>
+            <th width="15%">Id</th>
+            <th width="45%">Vendor</th>
+            <th width="40%">Date</th>
           </tr>
         </thead>
         <tbody>

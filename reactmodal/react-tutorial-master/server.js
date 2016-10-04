@@ -27,6 +27,9 @@ app.get('/api/get/:ticketid', (req, res) => {
 	fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
 	  const file = data.toString('utf8');
 		const tick = JSON.parse(file).filter((ticket) => {
+			req.params.ticketid;
+			if (ticket.id === req.params.ticketid) console.log(ticket.id);
+		
 			return String(ticket.id) === req.params.ticketid;
 		});
 		res.json(tick);

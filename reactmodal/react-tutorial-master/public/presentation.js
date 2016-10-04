@@ -18,8 +18,10 @@ const Ticket = React.createClass({
 	getInitialState: function () {
 		return { data: {} };
 	},
-	componentDidLoad: function () {
+	componentDidMount: function () {
+		console.log('this.props.data: ', this.props.data);
 		this.setState({ data: this.props.data });
+		console.log('setting this.state.data: ', this.state.data);
 	},
 	submit: function () {
 		this.props.submit(this.state.data);
@@ -34,15 +36,15 @@ const Ticket = React.createClass({
 			<Form horizontal onSubmit={ this.submit } >
 		 	  <FormGroup>
 		 	    <Col componentClass={ ControlLabel } sm={ 1 } >Id:</Col>
-		 	    <Col sm={ 8 } ><FormControl.Static type="text" value={ this.state.data["id"] } placeholder="Id" onChange={ this.childValue } /></Col>
+		 	    <Col sm={ 8 } ><FormControl.Static type="text" placeholder="Id" onChange={ this.childValue }>{ this.state.data["id"] }</FormControl.Static></Col>
 		 	  </FormGroup>
 		 	  <FormGroup>
 		 	    <Col componentClass={ ControlLabel } sm={ 1 } >Date:</Col>
-		 	    <Col sm={ 8 } ><FormControl.Static type="date" value={ this.state.data["date"] } placeholder="Date" onChange={ this.childValue } /></Col>
+		 	    <Col sm={ 8 } ><FormControl.Static type="date" placeholder="Date" onChange={ this.childValue }>{ this.state.data["date"] }</FormControl.Static></Col>
 		 	  </FormGroup>
 	 	    <FormGroup controlId="typeSelect">
           <Col componentClass={ ControlLabel } sm={ 1 } >Type:</Col>
-          <Col sm={ 8 } ><FormControl componentClass="select" value={ this.state.data["type"] } placeholder="Type" onChange={ this.childValue }>
+          <Col sm={ 8 } ><FormControl componentClass="select" placeholder="Type" onChange={ this.childValue }>{ this.state.data["type"] }
             <option value="doacrossship">DOA - Cross Ship</option>
             <option value="doarepairreturn">DOA - Repair & Return</option>
             <option value="nonwarrantyrepairreturn">Non-Warranty - Repair & Return</option>
@@ -61,22 +63,22 @@ const Ticket = React.createClass({
 						<br />
 						<Col smOffset={ 1 } >
    			 	  	<FormGroup>
-  			 	  	  <Col componentClass="ControlLabel" sm={ 1 } >Item Number:</Col>
+  			 	  	  <Col componentClass="ControlLabel" sm={ 2 } >Item Number:</Col>
   			 	  	  <Col sm={ 8 } ><FormControl type="text" value={ this.state.data["itemnumber"] } placeholder="Item Number" onChange={ this.childValue } /></Col>
   			 	  	</FormGroup>
 							<FormGroup>
 			 	    		<Col smOffset={ 1 } ><AutocompleteField name="Vendor" value={ this.state.data["vendor"] } data="vendordb" setvalue={ this.childValue } /></Col>
   			 	  	</FormGroup>
    			 	  	<FormGroup>
-  			 	  	  <Col componentClass="ControlLabel" sm={ 1 } >Serial Number:</Col>
+  			 	  	  <Col componentClass="ControlLabel" sm={ 2 } >Serial Number:</Col>
   			 	  	  <Col sm={ 8 } ><FormControl type="text" value={ this.state.data["serial"] } placeholder="Serial Number" onChange={ this.childValue } /></Col>
   			 	  	</FormGroup>
    			 	  	<FormGroup>
-  			 	  	  <Col componentClass="ControlLabel" sm={ 1 } >Purchase Date:</Col>
+  			 	  	  <Col componentClass="ControlLabel" sm={ 2 } >Purchase Date:</Col>
   			 	  	  <Col sm={ 8 } ><FormControl type="date" value={ this.state.data["purchasedate"] } placeholder="Purchase Date" onChange={ this.childValue } /></Col>
   			 	  	</FormGroup>
   	 	      	<FormGroup controlId="typeSelect">
-            	  <Col componentClass="ControlLabel" sm={ 1 } >Type:</Col>
+            	  <Col componentClass="ControlLabel" sm={ 2 } >Type:</Col>
             	  <Col sm={ 8 } ><FormControl componentClass="select" value={ this.state.data["type"] } placeholder="Type" onChange={ this.childValue }>
             	    <option value="doacrossship">DOA - Cross Ship</option>
             	    <option value="doarepairreturn">DOA - Repair & Return</option>
@@ -86,11 +88,11 @@ const Ticket = React.createClass({
             	  </FormControl></Col>
             	</FormGroup>
    			 	  	<FormGroup>
-  			 	  	  <Col componentClass="ControlLabel" sm={ 1 } >Invoice:</Col>
+  			 	  	  <Col componentClass="ControlLabel" sm={ 2 } >Invoice:</Col>
   			 	  	  <Col sm={ 8 } ><FormControl type="text" value={ this.state.data["invoice"] } placeholder="Invoice" onChange={ this.childValue } /></Col>
   			 	  	</FormGroup>
 		 	      	<FormGroup controlId="problemTextarea">
-            	  <Col componentClass="ControlLabel" sm={ 1 } >Problem:</Col>
+            	  <Col componentClass="ControlLabel" sm={ 2 } >Problem:</Col>
             	  <Col sm={ 8 } ><FormControl componentClass="textarea" value={ this.state.data["problem"] } placeholder="Problem" onChange={ this.childValue } /></Col>
             	</FormGroup>
 						</Col>
@@ -117,7 +119,7 @@ const Ticket = React.createClass({
 			 	    </div>
 			 	  </Tab>
 			 	</Tabs></Col>
-				<Button bsStyle="primary" click={ this.submit }>Submit</Button>
+				<Col smOffset={ 2 } ><Button bsStyle="primary" onClick={ this.submit }>Submit</Button></Col>
 			</Form>
 		);
 	}
