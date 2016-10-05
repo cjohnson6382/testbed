@@ -23,17 +23,29 @@ app.use(function(req, res, next) {
 app.locals.ticketid = 1;
 
 app.get('/api/get/:ticketid', (req, res) => {
-	console.log('in the ticketid route', req.params.ticketid);
-	fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
-	  const file = data.toString('utf8');
-		const tick = JSON.parse(file).filter((ticket) => {
-			req.params.ticketid;
-			if (ticket.id === req.params.ticketid) console.log(ticket.id);
-		
-			return String(ticket.id) === req.params.ticketid;
+	if (req.params.ticketid === 'new') {
+		fs.readFile(path.join(__dirname, 'public/data.json'), (err, data) => {
+			let tick = data.toString('utf8');
+
+			let file = JSON.parse(tick);
+			file.id = app.locals.ticketid++;
+
+			let date = new Date();
+			let datestring = date.getDay() + '-' + date.getDate() + '-' + date.getFullYear();
+
+			file.date = datestring;
+			res.json([file]);
 		});
-		res.json(tick);
-	});
+	} else {
+		fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
+		  const file = data.toString('utf8');
+			const tick = JSON.parse(file).filter((ticket) => {
+				return String(ticket.id) === req.params.ticketid;
+			});
+			res.json(tick);
+		});
+	}
+	console.log('in the ticketid route', req.params.ticketid);
 });
 
 app.get('/api/tickets', (req, res) => {

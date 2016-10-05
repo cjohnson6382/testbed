@@ -1,5 +1,6 @@
 const DropdownButton = ReactBootstrap.DropdownButton;
 const MenuItem = ReactBootstrap.MenuItem;
+const FormControl = ReactBootstrap.FormControl;
 
 const SERVER = "http://cjohnson.ignorelist.com/";
 
@@ -7,35 +8,26 @@ const AutocompleteField = React.createClass({
   getInitialState: function () {
     return {
       results: [],
-      value: this.props.value,
+      input: this.props.input,
       autocompletes: []
     };
   },
   componentDidMount: function () {
     fetch(SERVER + this.props.data + '.json')
       .then((resp) => { return resp.text() })
-      .then((text) => {
-        this.setState({
-          results: JSON.parse(text),
-          value: this.props.value
-        });
-      });
+      .then((text) => { this.setState({ results: JSON.parse(text) }) });
   },
 	updateValue: function () {
-		this.props.setvalue(this.props.name, this.state.value);
+		this.props.setvalue(this.props.name, this.state.input);
 	},
 	checkEmpty: function (evt) {
-		//	let prev = this.state.value.length || 0;
-		let prevl = this.state.value ? this.state.value.length : 0;
-		console.log(prevl);
-
-
+		//	let prev = this.state.input.length || 0;
 		let curr = evt.nativeEvent.target.value;
+
+		let prevl = this.state.input ? this.state.input.length : 0;
 		let currl = curr.length || 0;
 
-		console.log(prevl, curr);
-
-    this.setState({ value: evt.nativeEvent.target.value });
+    this.setState({ input: evt.nativeEvent.target.value });
 		
 		if (currl > prevl && evt.nativeEvent.target.value !== '') {
 			this.handleChange(evt)
@@ -46,15 +38,13 @@ const AutocompleteField = React.createClass({
   handleChange: function (evt) {
     const formData = new FormData;
     //  server doesn't do anything about this search value yet; need to filter the db results with it
-    formData.set('search', this.state.value);
-   
-		 
+    //	formData.set('search', this.state.input);
     //	fetch(SERVER + this.props.data + '.json', { method: 'POST', body: formData })
     fetch(SERVER + this.props.data + '.json')
       .then((resp) => { return resp.text() })
       .then((respArray) => {
 		    const autocompletes = JSON.parse(respArray).map((option, index) => {
-		      return ( <li key={ index } onClick={ this.submit } value={ option } >{ option }</li> );
+		      return ( <li key={ index } onClick={ this.submit } >{ option }</li> )
 		    });
         this.setState({ autocompletes: autocompletes });
       });
@@ -64,14 +54,13 @@ const AutocompleteField = React.createClass({
   },
   submit: function (evt) {
     evt.preventDefault();
-    this.setState({ value: evt.nativeEvent.target.attributes.value.value, autocompletes: [] });
+    this.setState({ input: evt.nativeEvent.target.attributes.value.value, autocompletes: [] });
 		this.updateValue();
   },
   render: function () {
     return (
       <div>
-        <span>{ this.props.name }: </span>
-        <input type="text" placeholder={ this.props.name } onChange={ this.checkEmpty } value={ this.state.value } onKeyPress={ this.handle } />
+        <input type="text" placeholder={ this.props.name } onChange={ this.checkEmpty } onKeyPress={ this.handle } value={ this.state.input } />
         <ul style={{ listStyleType: "none" }} >
           { this.state.autocompletes }
         </ul>
@@ -80,53 +69,4 @@ const AutocompleteField = React.createClass({
   }
 });
 
-const DropdownField = React.createClass({
-  getInitialState: () => {
-    return { value: '' }
-  },
-  componentDidLoad: function () {
-    this.setState({ value: this.props.value });
-  },
-	updateValue: function () {
-		this.props.setvalue(this.props.name, this.state.value);
-	},
-  select: function (evt) {
-    this.setState({ value: evt.target.value });
-		this.updateValue();
-  },
-  render: function () {
-    const menuitems = this.props.data.map((item, index) => {
-      return ( <MenuItem eventKey={ item } key={ index } id={ item } onSelect={ this.select } >{ item }</MenuItem> );
-    });
-  
-    return (
-      <div>
-        <span><DropdownButton title={ this.props.name } >{ menuitems }</DropdownButton></span>
-      </div>
-    );
-  }
-});
-
-const InputField = React.createClass({
-  getInitialState: () => {
-    return { value: '' };
-  },
-  componentDidMount: function () {
-    this.setState({ value: this.props.value });
-  },
-	updateValue: function () {
-		this.props.setvalue(this.props.name, this.state.value);
-	},
-  render: function () {
-    return (
-      <div>
-        <span>{ this.props.name }: </span>
-        <input type={ this.props.type } value={ this.state.value } placeholder={ this.props.name } onChange={ this.updateValue } />
-      </div>
-    );
-  }
-});
-
 window.AutocompleteField = AutocompleteField;
-window.DropdownField = DropdownField;
-window.InputField = InputField;

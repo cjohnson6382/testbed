@@ -9,7 +9,7 @@ const Ticket = window.Ticket;
 
 const TicketBox = React.createClass({
   getInitialState: function () {
-      return { data: [], ticketData: '', showModal: false };
+      return { data: [], ticketData: '', showModal: false, ticket: {} };
   },
 	selectTicket: function (evt) {
 		evt.preventDefault();
@@ -18,6 +18,10 @@ const TicketBox = React.createClass({
 		fetch(SERVER + "api/get/" + ticketid)
 			.then((data) => { return data.text() })
 			.then((ticketdata) => {
+
+
+				console.log(ticketdata);
+
 				this.setState({ ticketdata: JSON.parse(ticketdata)[0] });
 				this.openModal();
 			});
@@ -27,6 +31,22 @@ const TicketBox = React.createClass({
 	},
 	closeModal: function () {
 		this.setState({ showModal: false });
+	},
+	submit: function () {
+		let formdata = { ticket: this.state.ticket };
+
+		fetch(url, { method: 'POST', body: formdata })
+			.then((data) => { return data.text() })
+			.then((status) => { console.log('submi returned: ', status) });
+	},
+	setProperty: function (evt) {
+		let name = evt.nativeEvent.target.attributes.name.vale;
+		let value = evt.nativeEvent.target.value;
+
+		let data = this.state.data;
+		data[name] = value;
+
+		this.setState({ ticket: data });
 	},
   render: function () { 
     return (
@@ -38,9 +58,10 @@ const TicketBox = React.createClass({
             <Modal.Title>Ticket Properties</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-						<Ticket data={ this.state.ticketdata } />
+						<Ticket data={ this.state.ticketdata } submit={ this.submit } />
           </Modal.Body>
           <Modal.Footer>
+						<Button onClick={ this.submit }>Save</Button>
             <Button onClick={ this.closeModal }>Cancel</Button>
           </Modal.Footer>
         </Modal>
