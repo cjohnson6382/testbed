@@ -8,8 +8,6 @@ var app = express();
 
 var COMMENTS_FILE = path.join(__dirname, 'comments.json');
 
-//	app.set('port', (process.env.PORT || 3000));
-
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -19,11 +17,33 @@ app.use(function(req, res, next) {
     res.setHeader('Cache-Control', 'no-cache');
     next();
 });
+i
 
+//	this will go into its own table
 app.locals.ticketid = 1;
+
+//	setup the database tables: ticket, vendor, and customer
+//		http://mongodb.github.io/node-mongodb-native/2.2/quick-start/
+
+//	collections are 'tables'; 
+
+
+
+app.post('/api/put', (req, res) => {
+	let ticket = req.body.ticket;
+
+	//	put database write stuff here; write the ticket to the database?
+		//	can upsert the ticket; the client should send a complete ticket, not just the things it's changed, but I think it only sends changes right now
+
+	//	add customer/vendor information to their respective DBs
+
+	//	return 'success' message
+});
 
 app.get('/api/get/:ticketid', (req, res) => {
 	if (req.params.ticketid === 'new') {
+
+		//	change this so that it gets the template from the database
 		fs.readFile(path.join(__dirname, 'public/data.json'), (err, data) => {
 			let tick = data.toString('utf8');
 
@@ -37,6 +57,8 @@ app.get('/api/get/:ticketid', (req, res) => {
 			res.json([file]);
 		});
 	} else {
+
+		//	change this so that it queries the database for tickets
 		fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
 		  const file = data.toString('utf8');
 			const tick = JSON.parse(file).filter((ticket) => {
@@ -58,6 +80,7 @@ app.get('/api/tickets', (req, res) => {
   });
 });
 
+/*
 app.get('/api/comments', function(req, res) {
   fs.readFile(COMMENTS_FILE, function(err, data) {
     if (err) {
@@ -90,7 +113,7 @@ app.post('/api/comments', function(req, res) {
     });
   });
 });
-
+*/
 
 http.createServer(app).listen(80, function() {
   console.log('Server started: http://localhost:80/');
