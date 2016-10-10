@@ -1,5 +1,11 @@
 /*
 
+/// note that MongoDb stores date information on the _id key:
+> db.penguins.find().forEach(function (doc){ d = doc._id.getTimestamp(); print(d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate() + " " + d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds()) })
+2014-12-23 3:4:41
+2014-12-23 3:4:53
+
+
 search engine for the backend:
 
 3 different databases, one for each type of data that can be stored in the ticketDB
@@ -19,62 +25,162 @@ return the top 25 hits to the client, sorted by: score, date
 
 put an index on the token's field name, id too for easy deletion
 
-//  tokenize fields and insert into index dbs
 
-//  this only works for fields that you know are likely to have more than one word in them
-//    there are text fields which definitely only have one word in them, even though they have spaces; how do they get indexed?
-//      if you need to be able to search for a company name but you don't know the exact name, then you need to break down *every* text field into tokens
+//  search using the name field's 'text' index
+db.tickets.find({ $text: { $search: 'companyname' } }).toArray((err, docs) => {
+  assert.equal(err, null);
+  callback();
+});
 
-(ticket) => {
-  const db = ;  // get the dbhandle
 
-  //  db.collections('admin').insert({ _id: 'fieldscores', value: {} });
-  //  db.collections('admin').insert({ _id: 'propmap', value: {} });
-  //  db.collections('admin').insert({ _id: 'tokenfields', value: {} });
+co(function *() {
+  let hasAdminObjects = yield db.collections('admin').findOne({ _id: 'fieldscores' });
+  if (!hasAdminObjects) yield createAdminObjects;
+
+  yield createIndexes();
+});
+
+
+const createAdminObjects = () => {
+  const fieldscores = { id: 1, date: 0.5, customer: 0.8, vendor: 0.8, problem: 0.1} // etc...
+  const propmap = { id: 'int', customer: 'string', date: 'date'};
+  const tokenfields = {};
   
-  //  const fieldscores = { id: 1, date: 0.5, customer: 0.8, vendor: 0.8, problem: 0.1} // etc...
-  
-  //  const propmap = { id: 'int', customer: 'string', date: 'date'};
-  // (can store this object as JSON in the admin database, since it doesn't change)
-  //    const tokenfields = {};
-  //    Object.values(propmap).map((type) => {
-  //      Object.defineProperty(tokenfields, type, { value: [] });
-  //    });
+  Object.values(propmap).map((type) => {
+    Object.defineProperty(tokenfields, type, { value: [] });
+  });
 
-  const propmap = db.collections['admin'].findOne({ _id: 'propmap' }).value;
-  const tokenfields = db.collections['admin'].findOne({ _id: 'tokenfields' }).value
+  db.collections('admin').insert({ _id: 'fieldscores', value: fieldscores });
+  db.collections('admin').insert({ _id: 'propmap', value: propmap });
+  db.collections('admin').insert({ _id: 'tokenfields', value: tokenfields });
+  
+  return;
+};
+
+const createIndexes = () => {
+  //  indexes seem to be able to work well on any field in the standard 'ticketdb'; remove all the non-ticket databases!
+
+  db.tickets.createIndex({ id: -1 }, null, (err, res) => { console.log(res) }));
+  db.tickets.createIndex({ date: -1 }, null, (err, res) => { console.log(res) }));
+  db.tickets.createIndex(
+    { "$**": "text" },
+    {
+      name: "TextIndex",
+      /////////////////////////////// finish filling this out //////////////////////////////////
+      weights: {
+        _id: 10
+        customer: 9
+        vendor: 9
+        problem: 2
+      }
+    },
+    (err, res) => { console.log(res) }
+  );
+  
+  
+//  db.int.createIndex({ id: -1 }, null, (err, res) => { console.log(results) });
+//  db.date.createIndex({ date: -1 }, null, (err, res) => { console.log(results) });
+//  db.text.createIndex({ string: "text" }, null, (err, res) => { console.log(results) });
+  
+};
+
+app.use((req, res, next) => {
+  //  npm install mongodb --save
+  //  mongodb --dbpath=/data
+  
+  const MongoClient = require('mongodb').MongoClient;
+  const assert = require('assert');
+  const co = require('co');
+  
+  co(function *() {
+    const url = "mongodb://localhost:27017/rmatickets";
+    const db = yield MongoClient.connect(url);
+    
+    req.db.dbhandle = db;
+
+    yield req.db.dbobjects.tokenfields = req.db.dbhandle.collections['admin'].findOne({ _id: 'tokenfields' }).value;
+    yield req.db.dbobjects.tokenfields = req.db.dbhandle.collections['admin'].findOne({ _id: 'tokenfields' }).value;
+    yield req.db.dbobjects.tokenfields = req.db.dbhandle.collections['admin'].findOne({ _id: 'tokenfields' }).value;
+    
+    next();
+  })
+    .catch((err) => {
+      console.log(err.stack);
+    });
+});
+
+
+app.use('/api/new', () => {
+  addToIndex(req.body.ticket);
+});
+
+app.use('/api/update', () => {
+  updateIndex(req.body.ticket);
+});
+
+updateIndex = () => {
+  deleteFromIndex();
+  addToIndex();
+};
+
+  const db = req.db.dbhandle
+  
+  //  scores for each field { id: 1.0, customer: 0.9 }
+  const fieldscores = req.db.dbobjects.fieldscores;
+
+  //  ticket properties are int, text, date, whatever -- to determine what indexdb they should be stored in
+  const propmap = req.db.dbobjects.propmap;
+  
+  //  has all the props that need to be stored for each token { tokenvalue ('dog', '13', 'California', etc.), tokentype (int, date, string), parentticketid
+  //    (use to tell which ticket a token belongs to)}
+  const tokenfields = req.db.dbobjects.tokenfields;
+
+
+
+//  takes a new/updated ticket, breaks it into tokens, inserts those tokens into the appropriate indexdb
+addToIndex = (ticket) => {
+  const db = req.db.dbhandle
+  const propmap = req.db.dbobjects.propmap;
   
   Object.keys(ticket).map((field) => {
-
-
-
-    // regex match all the \w+ fields in ticket.field, return them as an array of insert objects; currently it's a 'split()'
-    
-    
-    let insertObjects = ticket[field].split().map((token) => {
+    let insertObjects = ticket[field].match(/\w+/).map((token) => {
       return { token: token, field: field, id: ticket.id};
     });
-    //  can just do the DB insertion here.. why waste my time with another .map?
+
     db.collections(propmap[field]).insertMany(insertObjects);
   });
+};
+
+deleteFromIndex: () => {
+  const db = req.db.dbhandle
+  const propmap = req.db.dbobjects.propmap;
+
+  const propmap = collections['admin'].find(_id: 'propmap');
+  
+  Object.keys(update).map((prop) => {
+    collection[propmap[prop]].deleteMany(
+      { $and [ type: prop }, { id: update.id } ] }
+    )
+  })
+  
 }
 
-how do I deal with updates?
-* get the original ticket from the ticketdb
-* delete all tokens from the relevant index dbs that are in fields changed by the update
 
-      //  const propmap = { id: 'int', customer: 'string', date: 'date'};
-      const propmap = collections['admin'].find(_id: 'propmap');
-      
-      
-      Object.keys(update).map((prop) => {
-        //  prop = 'name', 'id', 'customer', etc.
-        collection[propmap[prop]].deleteMany(
-          { $and [ type: prop }, { id: update.id } ] }
-        )
-      })
+//  once you get back an array of results from the DB, need to figure out the top 25 scoring results to return to the client
+sumScores: function (db_results_array) {
+  let scores_object = {};
 
-      
+  db_results_array.map((result) => { scores[result] ? scores_object[result] += result.score : scores_object[result] = result.score });
+  let scores_array = Object.keys(scores_object).map((result) => { return [result, scores[result]] });
+  let ordered_values = scores_array.sort((a, b) => { return a[1] - b[1] );
+  let truncated_ordered_values = ordered_values.length > 24 ? ordered_values.slice(0, 25) : ordered_values.slice(0);
+
+  //  return array of strings; string = short form ticket for display in TicketList
+  return truncated_ordered_values.map((value) => { return value[0] });
+}
+
+
+
 */
 
 /*
@@ -106,15 +212,6 @@ step three: another(?) middleware that creates the functions necessary for CRUDi
   vendors and customers databases:
     * get vendors: takesa  search string that it uses to get a filtered list of vendors, which the client uses for its autocompletes
 */
-
-//  npm install mongodb --save
-
-//  mongodb --dbpath=/data
-
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-
-
 
 app.get('/api/:database/get/:query', (req, res) => {
   let collection = req.db[req.params.database];
@@ -182,12 +279,6 @@ app.get('/api/tickets/get/:query', (req, res) => {
 
 
 
-const url = "mongodb://localhost:27017/rmatickets";
-
-MongoClient.connect(url, function (err, db) {
-  assert.equal(null, err);
-  console.log("successfully connected to the rmatickets database");
-});
 
 /*
 The insert command returns an object with the following fields:
@@ -226,33 +317,4 @@ ticketdb.deleteOne({ 'id': 3 }, (err, res) => {
   assert.equal(err, null);
 });
 
-//  create an index on ID
-indexTicketdb = (db, callback) => {
-  db.collection('tickets').createIndex(
-    //  creates a descending index -- highest id is first in the index
-    { id: -1 },
-    null,
-    (err, res) => {
-      console.log(results);
-      callback();
-    }
-  );
-};
 
-// create an index on the name field
-indexTicketdb = (db, callback) => {
-  db.collection('tickets').createIndex(
-    { name: "text" },
-    null,
-    (err, res) => {
-      console.log(results);
-      callback();
-    }
-  );
-};
-
-//  search using the name field's 'text' index
-db.tickets.find({ $text: { $search: 'companyname' } }).toArray((err, docs) => {
-  assert.equal(err, null);
-  callback();
-});
