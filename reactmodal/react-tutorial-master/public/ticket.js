@@ -71,12 +71,23 @@ const SelectField = React.createClass({
 });
 
 const StaticInputField = React.createClass({
+	getInitialState: function () {
+		return { value: '' };
+	},
+	componentWillReceiveProps: function () {
+		if (this.props.data.type === "date" && this.props.data.value) {
+			let date = new Date(this.props.data.value).toISOString().substring(0, 10);
+			this.setState({ value: date });
+		}	else {
+			this.setState({ value: this.props.data.value })
+		}
+	},
   render: function () {
     return (
       <FormGroup controlId={ this.props.data.name + "Static" } >
         <Col componentClass="ControlLabel" sm={ 2 } >{ this.props.data.placeholder }:</Col>
         <Col sm={ 8 }>
-          <FormControl.Static type={ this.props.data.type } placeholder={ this.props.data.placeholder }>{ this.props.data.value }</FormControl.Static>
+          <FormControl.Static type={ this.props.data.type } placeholder={ this.props.data.placeholder }>{ this.state.value }</FormControl.Static>
         </Col>
 			</FormGroup>
     );
@@ -104,13 +115,22 @@ const TextboxInputField = React.createClass({
     );
   }
 });
-
 const InputField = React.createClass({
   getInitialState: function () {
-    return { value: this.props.data.value }
+   	return { value: '' }
   },
+	componentDidMount: function () {
+		this.setState({ value: this.props.data.value });
+	},
+	componentWillReceiveProps: function (newProps) {
+		if (this.props.data.type === 'date' && newProps.data.value) {
+			let date = new Date(newProps.data.value).toISOString().substring(0, 10);
+			this.setState({ value: date });
+		} else {
+    	this.setState({ value: newProps.data.value });
+		}
+	},
   onChange: function (evt) {
-    //  console.log(evt.currentTarget, evt.nativeEvent);
     let name = evt.currentTarget.attributes.name.value;
     let value = evt.currentTarget.value;
 
@@ -143,18 +163,31 @@ const AutocompleteField = React.createClass({
     };
   },
   componentDidMount: function () {
-    fetch(SERVER + this.props.data.name + 'db.json')
-      .then((resp) => { return resp.text() })
-      .then((text) => { this.setState({ input: this.props.data.value, results: JSON.parse(text) }) });
+		this.setState({ input: this.props.data.value });
   },
+	componentWillReceiveProps: function (newProps) {
+		this.setState({ input: newProps.data.value });
+	},
 	checkEmpty: function (evt) {
+		//	this function needs to modify the displayed autocompletes by the user's input if the input does not require a server hit
+		//		can check whether the new input contains the old input; if so, no server hit is required
+		//		the new input is a subset of the old input and a filter can return just the stuff that matches the new input
+
 		evt.preventDefault();
 		let curr = evt.nativeEvent.target.value;
 
 		let prevl = this.state.input ? this.state.input.length : 0;
 		let currl = curr.length || 0;
 
-    this.setState({ input: evt.nativeEvent.target.value });
+		//	don't setState directly for the input value; should be going up to the ticketbox and then propagating back down
+    //	this.setState({ input: evt.nativeEvent.target.value });
+
+
+
+		//	this might not work*****************************************		
+		let name = evt.currentTarget.attributes.name.value;
+		let value = evt.currentTarget.value
+		this.submit({ name: name, value: value });
 
 		if (currl > prevl && curr !== '') {
 			this.handleChange(evt)
@@ -164,11 +197,13 @@ const AutocompleteField = React.createClass({
 	},
   handleChange: function (evt) {
     const formData = new FormData;
-    //  server doesn't do anything about this search value yet; need to filter the db results with it
-    //	formData.set('search', this.state.input);
-    //	fetch(SERVER + this.props.data.db + '.json', { method: 'POST', body: formData })
-    fetch(SERVER + this.props.data.name + 'db.json')
-      .then((resp) => { return resp.text() })
+		console.log(this.props.data, evt.nativeEvent.target.value);
+		//	this function only fires if there is a change that requires hitting the server
+		//		the autocomplete results displayed should chnage when the user changes the input field, regardless of whether there is a server request
+    fetch(SERVER + "data/" + this.props.data.name + "/" + evt.nativeEvent.target.value)
+      .then((resp) => { 
+				return resp.text() 			
+			})
       .then((respArray) => {
 		    const autocompletes = JSON.parse(respArray).map((option, index) => {
 		      return ( <li key={ index } name={ this.props.data.name } onClick={ this.selectAutocomplete } value={ option }>{ option }</li> )
@@ -178,6 +213,8 @@ const AutocompleteField = React.createClass({
   },
   handle: function (evt) {
 		if (evt.nativeEvent.keyCode == 13) {
+			this.setState({ input: evt.currentTarget.value});
+
 			let name = evt.currentTarget.attributes.name.value;
 			let value = evt.currentTarget.value
 			this.submit({ name: name, value: value });
@@ -187,8 +224,6 @@ const AutocompleteField = React.createClass({
 		evt.preventDefault();
 		let name = evt.currentTarget.attributes.name.value;
 		let value = evt.currentTarget.innerText;
-
-		this.setState({ input: evt.currentTarget.innerText, autocompletes: [] });
 
 		this.submit({ name: name, value: value });
 	},
@@ -201,7 +236,7 @@ const AutocompleteField = React.createClass({
 			<FormGroup controlId={ this.props.data.name + "Autocomplete" }>
 				<Col componentClass="ControlLabel" sm={ 2 } >{ this.props.data.placeholder}:</Col>	
 	      <Col sm={ 8 }><div>
-	        <input 
+	        <input
 						name={ this.props.data.name }
 						type="text" 
 						placeholder={ this.props.data.placeholder } 

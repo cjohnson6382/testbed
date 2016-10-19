@@ -24,46 +24,38 @@ const Ticket = React.createClass({
 	componentDidMount: function () {
 		this.setState({ data: this.props.data });
 	},
-/*
-	onChange: function (evt) {
-		let name = evt.currentTarget.attributes.name.value;
-		let value = evt.currentTarget.value;
-
-		this.props.data.onChange({ name: name, value: value});
-	},
-*/
 	childValue: function (newProp) {
 		this.props.setProp(newProp);
 	},
 	render: function () {
 		return (
-			<Form horizontal onSubmit={ this.submit } >
+			<Form horizontal onSubmit={ this.submit } autoComplete="off" >
 				<StaticInputField data={ { name: "id", value: this.state.data["id"], placeholder: "Id", type: "text" } } />
 				<StaticInputField data={ { name: "date", value: this.state.data["date"], placeholder: "Date", type: "date" } } />
 				<SelectField  data={ { controlId: "typeSelect", name: "type", placeholder: "Type", onChange: this.childValue, value: this.state.data["type"], options: ["DOA - Cross Ship", "Warranty - Repair & Return", "Warranty - Cross Ship", "Non-Warranty - Repair & Return", "Other - See Notes"] } } />
        	<AutocompleteField data= { { placeholder: "Customer", name: "customer", value: this.state.data["customer"], onChange: this.childValue } }/>
-				<CheckboxField data={ { name: "dropship", onChange: this.onChange, value: this.props.data["dropship"], placeholder: "Dropship" } }/>
+				<CheckboxField data={ { name: "dropship", onChange: this.onChange, value: this.state.data["dropship"], placeholder: "Dropship" } }/>
 			 	<Col sm={ 20 } ><Tabs defaultActiveKey={ 1 } id="tabs" >
 			 	  <Tab eventKey={ 1 } title="Inventory">
 						<br />
 						<InputField data={ { controlId: 'itemnumberText', type: 'text', name: 'itemnumber', placeholder: 'Item Number', onChange: this.childValue, value: this.state.data["itemnumber"] } } />
-			     	<AutocompleteField data= { { placeholder: "Vendor", name: "vendor", input: this.state.data["customer"], onChange: this.childValue } }/>
+			     	<AutocompleteField data= { { placeholder: "Vendor", name: "vendor", value: this.state.data["vendor"], onChange: this.childValue } }/>
 						<InputField data={ { controlId: 'serialnumberText', type: 'text', name: 'serial', placeholder: 'Serial Number', onChange: this.childValue, value: this.state.data["serial"] } } />
 						<InputField data={ { controlId: 'purchasedateText', type: 'date', name: 'purchasedate', placeholder: 'Purchase Date', onChange: this.childValue, value: this.state.data["purchasedate"] } } />
 						<SelectField  data={ { controlId: "typeSelect", name: "type", placeholder: "Type", onChange: this.childValue, value: this.state.data["type"], options: ["DOA - Cross Ship", "Warranty - Repair & Return", "Warranty - Cross Ship", "Non-Warranty - Repair & Return", "Other - See Notes"] } } />
 						<InputField data={ { controlId: 'invoiceText', type: 'text', name: 'invoice', placeholder: 'Invoice', onChange: this.childValue, value: this.state.data["invoice"] } } />
-						<TextboxInputField data={ { name: "problem", placeholder: "Problem", value: this.state.data["problem"] } } />
+						<TextboxInputField data={ { name: "problem", placeholder: "Problem", value: this.state.data["problem"], onChange: this.childValue } } />
 			 	  </Tab>
 			 	  <Tab eventKey={ 2 } title="Customer">
 			 	  </Tab>
 			 	  <Tab eventKey={ 3 } title="Status">
 						<br />
 						<InputField data={ { controlId: 'itemnumberText', type: 'text', name: 'itemnumber', placeholder: 'Item Number', onChange: this.childValue, value: this.state.data["itemnumber"] } } />
-						<CheckboxField data={ { name: "received", onChange: this.onChange, value: this.props.data["received"], placeholder: "Received" } }/>
+						<CheckboxField data={ { name: "received", onChange: this.onChange, value: this.state.data["received"], placeholder: "Received" } }/>
 						<InputField data={ { controlId: 'trackingText', type: 'text', name: 'tracking', placeholder: 'Tracking', onChange: this.childValue, value: this.state.data["tracking"] } } />
-						<CheckboxField data={ { name: "eval", onChange: this.onChange, value: this.props.data["eval"], placeholder: "Eval" } }/>
-						<CheckboxField data={ { name: "stock", onChange: this.onChange, value: this.props.data["stock"], placeholder: "Stock" } }/>
-						<CheckboxField data={ { name: "close", onChange: this.onChange, value: this.props.data["close"], placeholder: "Close" } }/>
+						<CheckboxField data={ { name: "eval", onChange: this.onChange, value: this.state.data["eval"], placeholder: "Eval" } }/>
+						<CheckboxField data={ { name: "stock", onChange: this.onChange, value: this.state.data["stock"], placeholder: "Stock" } }/>
+						<CheckboxField data={ { name: "close", onChange: this.onChange, value: this.state.data["close"], placeholder: "Close" } }/>
 			 	  </Tab>
 			 	  <Tab eventKey={ 4 } title="Other">
 						<InputField data={ { controlId: 'startedbyText', type: 'text', name: 'startedby', placeholder: 'Started By', onChange: this.childValue, value: this.state.data["startedby"] } } />

@@ -1,120 +1,125 @@
-var http = require('http');
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
 
-var fs = require('fs');
-var path = require('path');
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
-
-var COMMENTS_FILE = path.join(__dirname, 'comments.json');
+const DB_URL = "mongodb://localhost:27017/rmatickets";
+const ticket_route = require('./routes/ticket_routes.js');
+const autocompletes_route = require('./routes/autocompletes.js');
 
 app.use('/', express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(function(req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 'no-cache');
-    next();
-});
-i
-
-//	this will go into its own table
-app.locals.ticketid = 1;
-
-//	setup the database tables: ticket, vendor, and customer
-//		http://mongodb.github.io/node-mongodb-native/2.2/quick-start/
-
-//	collections are 'tables'; 
 
 
+//	app.use(bodyParser.json());
+//	app.use(bodyParser.urlencoded({extended: true}));
 
-app.post('/api/put', (req, res) => {
-	let ticket = req.body.ticket;
-
-	//	put database write stuff here; write the ticket to the database?
-		//	can upsert the ticket; the client should send a complete ticket, not just the things it's changed, but I think it only sends changes right now
-
-	//	add customer/vendor information to their respective DBs
-
-	//	return 'success' message
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
 });
 
-app.get('/api/get/:ticketid', (req, res) => {
-	if (req.params.ticketid === 'new') {
+const insertdefaults = (db) => {
+  db.collection('bureaucracy').findOne({ _id: "new" })
+ 		.then((data) => {
+			assert.equal(data, null);
 
-		//	change this so that it gets the template from the database
-		fs.readFile(path.join(__dirname, 'public/data.json'), (err, data) => {
-			let tick = data.toString('utf8');
+		  const ticket_template = {
+		    "id": "",
+		    "date": "",
+		    "type": "",
+		    "customer": "",
+		    "dropship": false,
+		    "itemnumber": "",
+		    "vendor": "",
+		    "serial": "",
+		    "purchasedate": "",
+		    "invoice": "",
+		    "problem": "",
+		    "received": false,
+		    "tracking": "",
+		    "eval": false,
+		    "stock": false,
+		    "close": false,
+		    "startedby": "",
+		    "notes": "",
+		    "repairhold": "",
+		    "holddate": "",
+		    "vendorrma": ""
+		  };
 
-			let file = JSON.parse(tick);
-			file.id = app.locals.ticketid++;
+	   	deferred = new Promise.all([
+	   	  db.collection('bureaucracy').insertOne({ _id: "idincrementor", value: 1 }),
+	   	  db.collection('bureaucracy').insertOne({ _id: "new", data: ticket_template})
+	   	]);
 
-			let date = new Date();
-			let datestring = date.getDay() + '-' + date.getDate() + '-' + date.getFullYear();
-
-			file.date = datestring;
-			res.json([file]);
-		});
-	} else {
-
-		//	change this so that it queries the database for tickets
-		fs.readFile(path.join(__dirname, 'public/tickets.json'), (err, data) => {
-		  const file = data.toString('utf8');
-			const tick = JSON.parse(file).filter((ticket) => {
-				return String(ticket.id) === req.params.ticketid;
+			deferred.then((values) => {
+				return values;
 			});
-			res.json(tick);
+		}) 
+		.then((values) => {
+    	console.log('defaults have been added to DB: ', values);
+      return ticket_template;
+	  })
+		.catch((err) => {
+			console.log('defaults are already in db');
 		});
-	}
-	console.log('in the ticketid route', req.params.ticketid);
-});
+};
 
-app.get('/api/tickets', (req, res) => {
-  fs.readFile(path.join(__dirname, 'public/template.json'), (err, data) => {
-    const template = JSON.parse(data.toString('utf8'));
-		template.value[0].value.value[0].value = () => { return app.locals.ticketid++ };
-    template.value[0].value.value[1].value = Date.now();
-
-    res.json(template);
-  });
-});
-
-/*
-app.get('/api/comments', function(req, res) {
-  fs.readFile(COMMENTS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    res.json(JSON.parse(data));
-  });
-});
-
-app.post('/api/comments', function(req, res) {
-  fs.readFile(COMMENTS_FILE, function(err, data) {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    var comments = JSON.parse(data);
-    var newComment = {
-      id: Date.now(),
-      author: req.body.author,
-      text: req.body.text,
-    };
-    comments.push(newComment);
-    fs.writeFile(COMMENTS_FILE, JSON.stringify(comments, null, 4), function(err) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
+const createIndexes = (db) => {
+  db.collection('tickets').createIndex(
+    { id: -1 },
+    null,
+    (err, res) => { console.log(res) }
+  );
+  db.collection('tickets').createIndex(
+    { date: -1 },
+    null,
+    (err, res) => { console.log(res) }
+  );
+  db.collection('tickets').createIndex(
+    { "$**": "text" },
+    {
+      name: "TextIndex",
+      weights: {
+        //	id: 10,
+        type: 4,
+        customer: 6,
+        //	itemnumber: 9,
+        vendor: 6,
+        //	serial: 9,
+        //	invoice: 9,
+        problem: 3,
+        received: 8,
+        startedby: 4,
+        notes: 4,
       }
-      res.json(comments);
-    });
-  });
-});
-*/
+    },
+    (err, res) => { console.log(res) }
+  );
+};
 
-http.createServer(app).listen(80, function() {
-  console.log('Server started: http://localhost:80/');
-});
+MongoClient.connect(DB_URL)
+	.then((db) => {
+		insertdefaults(db);
+		createIndexes(db);
+		app.use((req, res, next) => {
+			req.db = db;
+			next();
+		});
+		app.use('/api/tickets', ticket_route);
+		app.use('/data', autocompletes_route);
+		return;
+	})
+	.then(() => {
+		http.createServer(app).listen(80, function() {
+		  console.log('Server started: http://localhost:80/');
+		});
+	})
+	.catch((err) => {
+		console.log(err.stack);
+	});
