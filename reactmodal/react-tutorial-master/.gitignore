@@ -1,4 +1,4 @@
 *~
 node_modules
 .DS_Store
-rmatickets.1
+db/
