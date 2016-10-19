@@ -12,8 +12,6 @@ const Col = ReactBootstrap.Col
 
 const SERVER = "http://cjohnson.ignorelist.com/";
 
-
-
 const CheckboxField = React.createClass({
   getInitialState: function () {
     return { value: this.props.data.value };
