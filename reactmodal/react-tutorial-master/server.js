@@ -86,13 +86,13 @@ const createIndexes = (db) => {
     {
       name: "TextIndex",
       weights: {
-        //	id: 10,
+        id: 10,
         type: 4,
         customer: 6,
-        //	itemnumber: 9,
+        itemnumber: 9,
         vendor: 6,
-        //	serial: 9,
-        //	invoice: 9,
+        serial: 9,
+        invoice: 9,
         problem: 3,
         received: 8,
         startedby: 4,

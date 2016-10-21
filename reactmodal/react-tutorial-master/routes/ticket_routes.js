@@ -24,12 +24,28 @@ router.get('/new', (req, res) => {
 });
 
 router.get('/search/:query', (req, res) => {
+	let queryobj = JSON.parse(req.params.query);
+	let query = queryobj.search === "" ? {} : { $text: { $search: queryobj.search } };
 
-	console.log('in search route; query: ', req.params.query);
+	console.log(queryobj);
 
-	let query = req.params.query === "initial" ? {} : { $text: { $search: req.params.query } };
+	if (queryobj.before !== "" || queryobj.after !== "") {
+		query.date = {};
+
+		if (queryobj.before !== "") {
+			let before = new Date(queryobj.before.split("-"));
+			query.date['$lte'] = before.valueOf();
+		}
+		if (queryobj.after !== "") {
+			let after = new Date(queryobj.after.split("-"));
+			query.date['$gte'] = after.valueOf();
+		}
+	}
+
   req.db.collection('tickets').find(query).toArray()
     .then((docs) => {
+			console.log(docs);
+		
       res.end(JSON.stringify(docs.length > 24 ? docs.slice(0, 24) : docs));
     })
     .catch((err) => { console.log(err.stack) });
