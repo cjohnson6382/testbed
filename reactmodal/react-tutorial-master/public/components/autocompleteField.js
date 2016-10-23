@@ -1,3 +1,6 @@
+const Popover = ReactBootstrap.Popover;
+const Overlay = ReactBootstrap.Overlay;
+//	const OverlayTrigger = ReactBootstrap.OverlayTrigger;
 const FormGroup = ReactBootstrap.FormGroup;
 const FormControl = ReactBootstrap.FormControl;
 const ControlLabel = ReactBootstrap.ControlLabel;
@@ -5,12 +8,38 @@ const Col = ReactBootstrap.Col;
 
 const SERVER = "http://cjohnson.ignorelist.com/";
 
+
+const CustomPopover = React.createClass({
+	componentDidMount: function () {
+		console.log(this.props);
+
+		console.log(ReactDOM.findDOMNode(this.refs.autocomplete));
+	},
+	render: function () {
+		let autocompletes = this.props.items.map((option, index) => {
+  		return ( <div key={ index } name={ this.props.name } onClick={ this.props.selectAutocomplete } >{ option }</div> )
+  	});
+
+		return (
+			<Popover 
+				{ ...this.props }
+				id="autocomplete-popover"
+				style={{ position: 'relative', arrowOffsetTop: 0  }}
+			>
+				</br>
+				{ autocompletes }
+			</Popover>
+		)
+	}
+});
+
 const AutocompleteField = React.createClass({
   getInitialState: function () {
     return {
-      results: [],
       input: '',
-      autocompletes: []
+      autocompletes: [],
+			popover: {},
+			popoverVisible: "display: none"
     };
   },
   componentDidMount: function () {
@@ -19,89 +48,124 @@ const AutocompleteField = React.createClass({
 	componentWillReceiveProps: function (newProps) {
 		this.setState({ input: newProps.data.value });
 	},
-	checkEmpty: function (evt) {
-		//	this function needs to modify the displayed autocompletes by the user's input if the input does not require a server hit
-		//		can check whether the new input contains the old input; if so, no server hit is required
-		//		the new input is a subset of the old input and a filter can return just the stuff that matches the new input
-
-		evt.preventDefault();
-		let curr = evt.nativeEvent.target.value;
-
-		let prevl = this.state.input ? this.state.input.length : 0;
-		let currl = curr.length || 0;
-
-		//	don't setState directly for the input value; should be going up to the ticketbox and then propagating back down
-    //	this.setState({ input: evt.nativeEvent.target.value });
-
-
-
-		//	this might not work*****************************************
-		let name = evt.currentTarget.attributes.name.value;
-		let value = evt.currentTarget.value
-		this.submit({ name: name, value: value });
-
-		if (currl > prevl && curr !== '') {
-			this.handleChange(evt)
-		} else {
-			this.setState({ autocompletes: [] });
-		}
+	hover: function () {
+		//	cancel the popover interval
+		clearInterval(this.state.popover);
 	},
-  handleChange: function (evt) {
-    const formData = new FormData;
-		//	console.log(this.props.data, evt.nativeEvent.target.value);
-		//	this function only fires if there is a change that requires hitting the server
-		//		the autocomplete results displayed should chnage when the user changes the input field, regardless of whether there is a server request
-    fetch(SERVER + "data/" + this.props.data.name + "/" + evt.nativeEvent.target.value)
-      .then((resp) => {
-				return resp.text()
-			})
-      .then((respArray) => {
-		    const autocompletes = JSON.parse(respArray).map((option, index) => {
-		      return ( <li key={ index } name={ this.props.data.name } onClick={ this.selectAutocomplete } value={ option }>{ option }</li> )
-		    });
-        this.setState({ autocompletes: autocompletes });
-      });
-  },
-  handle: function (evt) {
-		if (evt.nativeEvent.keyCode == 13) {
-			this.setState({ input: evt.currentTarget.value});
+	unhover: function () {
+		//	start the popover interval
+		let popover = setTimeout(() => { 
+				this.show(false);
+			}, 
+			1500
+		);
+		this.setState({ popover: popover });
+	},
+	show: function (bool) {
+		if (bool) { 
+			this.setState({ show: true  });
+		} else {
+			this.setState({ show: false });	
+		};
+	},	
+	update: function (evt) {
+		evt.preventDefault();
 
-			let name = evt.currentTarget.attributes.name.value;
-			let value = evt.currentTarget.value
-			this.submit({ name: name, value: value });
+		if (evt.target.value !== '') {
+			this.show(true);
+			clearInterval(this.state.popover);
+			let popover = setTimeout(() => { 
+					this.show(false);
+				}, 
+				15000
+			);
+			this.setState({ popover: popover });
+		};
+
+    //  update the autocompletes; possibly from the server
+    if (evt.target.value === '') {
+			this.setState({ autocompletes: [] });
+		} else if (this.state.input !== '' && evt.target.value.includes(this.state.input)) {
+      //  no actual update, just filter existing results
+      let newAutocompletes = this.state.autocompletes.filter((item) => {
+        return item.includes(evt.target.value);
+      });
+      
+      //  filtering returned too few results, and there might be other results in the DB
+      if (this.state.autocompletes.length > 14 && newAutocompletes.length < 5) {
+        this.fetch(evt.target.value);
+      } else {
+        //  set the filtered results
+        this.setState({ autocompletes: newAutocompletes });
+      }
+		} else if (this.state.input.includes(evt.target.value)) {
+      //  new input is the same as previous, but shorter; no autocompletes at all
+      this.setState({ autocompletes: [] });
+    } else {
+      //  input is neither a shorter version of previous, nor a longer version; just get new results
+      this.fetch(evt.target.value);
+    }
+
+    //  set the input on the master ticket object, which propagates down
+		this.submit({ name: evt.target.attributes.name.value, value: evt.target.value});
+	},
+  fetch: function (value) {
+		console.log('fetching', value);
+		console.log(SERVER + "data/" + this.props.data.name + "/" + value);
+
+    fetch(SERVER + "data/" + this.props.data.name + "/" + value)
+      .then((resp) => { return resp.text() })
+      .then((respArray) => { 
+				this.setState({ autocompletes: JSON.parse(respArray) }) 
+				console.log(respArray);
+			});
+
+  },
+  onKeyPress: function (evt) {
+		if (evt.charCode == 13) {
+			this.setState({ autocompletes: [] });
+			this.show(false);
 		}
   },
 	selectAutocomplete: function (evt) {
 		evt.preventDefault();
-		let name = evt.currentTarget.attributes.name.value;
-		let value = evt.currentTarget.innerText;
+		this.show(false);
+		this.setState({ autocompletes: [] });
 
-		this.submit({ name: name, value: value });
+		this.submit({ name: evt.target.attributes.name.value, value: evt.target.innerText });
 	},
-  submit: function (newProp) {
-    this.setState({ input: newProp.value, autocompletes: [] });
-		this.props.data.onChange(newProp);
+  submit: function (input) {
+    //  input is { name: [name], value: [value] }
+		this.props.data.onChange(input);
   },
   render: function () {
     return (
 			<FormGroup controlId={ this.props.data.name + "Autocomplete" }>
 				<Col componentClass={ ControlLabel } sm={ 2 } >{ this.props.data.placeholder}:</Col>
-	      <Col sm={ 8 }><div>
-	        <input
+	      <Col sm={ 3 }>
+	    	  <input
+						ref="target"
 						name={ this.props.data.name }
 						type="text"
 						placeholder={ this.props.data.placeholder }
-						onKeyPress={ this.handle }
-						onChange={ this.checkEmpty }
+						onKeyPress={ this.onKeyPress }
+						onChange={ this.update }
 						value={ this.state.input }
 					/>
-	        <ul style={{ listStyleType: "none" }} >
-	          { this.state.autocompletes }
-	        </ul>
-	      </div></Col>
+					<Overlay
+						show={ this.state.show }
+						onHide={ () => { this.show(false) }}
+						container={ this }
+						placement="right"
+						target={ () => ReactDOM.findDOMNode(this.refs.target) }
+					>
+						<CustomPopover name={ this.props.data.name } items={ this.state.autocompletes } selectAutocomplete={ this.selectAutocomplete } hover={ this.hover } unhover={ this.unhover }/>
+					</Overlay>
+				</Col>
 			</FormGroup>
     );
   }
 });
+//	<CustomPopover name={ this.props.data.name } items={ this.state.autocompletes } selectAutocomplete={ this.selectAutocomplete } hover={ this.hover } unhover={ this.unhover }/>
 
 window.AutocompleteField = AutocompleteField;
